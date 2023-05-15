@@ -21,6 +21,7 @@ function App() {
     <>
     <Router>
       <Header/>
+      <div id="google-signin-prompt" className="google-signin-prompt"/>
         <Routes>
           <Route exact path='/' element={<Home/>} />
           <Route exact path='/about' element={<About/>} />

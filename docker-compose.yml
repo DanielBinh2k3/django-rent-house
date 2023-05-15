@@ -5,6 +5,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    command: >
+      bash -c "python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000"  
+    restart: always
+    volumes:
+      - ./backend:/backend
     ports:
       - "8000:8000"
     depends_on:
@@ -14,8 +21,6 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://backend:8000
 
   db:
     image: postgres:13-alpine
@@ -27,3 +32,4 @@ services:
       - "5432:5432"
     volumes:
       - /postgres_data:/var/lib/postgresql/data
+

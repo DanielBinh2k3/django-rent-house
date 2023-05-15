@@ -3,6 +3,7 @@ from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager,
     PermissionsMixin
 )
+from django.utils import timezone
 # Create your models here.
 
 
@@ -43,6 +44,9 @@ class UserAccountManager(BaseUserManager):
         return user
 
 
+AUTH_PROVIDERS = {'facebook': 'facebook', 'google': 'google',
+                  'twitter': 'twitter', 'email': 'email'}
+
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -53,6 +57,11 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     image_profile = models.ImageField(
         upload_to='profile_images', blank=True, null=True)
     is_password_reset_completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    auth_provider = models.CharField(
+        max_length=255, blank=False,
+        null=False, default=AUTH_PROVIDERS.get('email'))
     objects = UserAccountManager()
 
     USERNAME_FIELD = 'email'

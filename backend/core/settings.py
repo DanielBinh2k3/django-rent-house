@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -94,7 +97,7 @@ DATABASES = {
         'NAME': 'house_owner',
         'USER': 'postgres',
         'PASSWORD': '123456',
-        'HOST': 'db',
+        # 'HOST': 'db',
         "PORT": 5432,
     },
 }
@@ -180,5 +183,5 @@ AUTH_USER_MODEL = 'base.UserAccount'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'binh.tng@zinza.com.vn'
-EMAIL_HOST_PASSWORD = 'Binh&2003'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

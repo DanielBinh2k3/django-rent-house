@@ -1,0 +1,7 @@
+.google-signin-prompt {
+  position: absolute;
+  top: 50px; /* adjust this value to position the prompt over the header */
+  left: 50px; /* adjust this value to position the prompt over the header */
+  /* other styles */
+  z-index: 99999999;
+}

@@ -5,6 +5,9 @@ import Message from '../common/Message1';
 import Loader from '../common/Loader';
 import { login } from '../../apiRequest/actions/userActions';
 import { Form } from 'react-bootstrap';
+import jwt_decode from "jwt-decode";
+import TwitterLogin from  "react-twitter-login"
+import './login.css'
 
 
 const LoginScreen = () => {
@@ -18,10 +21,6 @@ const LoginScreen = () => {
 
     scale: '0.85',
   };
-  const responseGoogle = (response) => {
-    console.log(response);
-    // handle the response here
-  }
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -39,6 +38,93 @@ const LoginScreen = () => {
       navigate(redirect);
     }
   }, [userInfo, redirect, navigate]);
+
+  function handleGoogleCallbackResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+    var userObject = jwt_decode(response.credential);
+    console.log(userObject);
+
+    const userInfo = {
+      name: userObject.name,
+      email: userObject.email,
+      googleId: userObject.sub
+    };
+
+    // Dispatch a login action with the user info
+    dispatch(login(userInfo.email, userInfo.googleId));
+  }
+
+  useEffect(() => {
+    /*global google*/
+    google.accounts.id.initialize({
+      client_id: "1036092188931-h0uog1a6qkqsljcjemdpeoa60vs9hc7r.apps.googleusercontent.com",
+      callback: handleGoogleCallbackResponse
+    });
+  }, []);
+  const authHandler = (error, data) => {
+    if (error) {
+      console.log("Twitter login error:", error);
+    } else {
+      console.log("Twitter login data:", data);
+      // Handle the successful login here
+    }
+  };
+const handleGoogleSignIn = () => {
+  google.accounts.id.prompt((response) => {
+    if (response.status === "OK") {
+      // The user has signed in successfully.
+      console.log("Google Sign-In success:", response);
+    } else {
+      // The user has not signed in.
+      console.log("Google Sign-In failed:", response);
+    }
+  }, { promptParentId: 'google-signin-prompt' }); // add the promptParentId option
+};
+
+
+const handleFBCallbackResponse = (response) => {
+  console.log("Facebook login response: ", response);
+  if (response.status === "connected") {
+    // Use the Facebook SDK to retrieve the user's basic profile information
+    FB.api("/me", { fields: "name,email,id,picture.width(200)" }, function(response) {
+      console.log("Facebook user profile: ", response);
+      const userInfo = {
+        name: response.name,
+        email: response.email,
+        facebookId: response.id,
+        profilePictureUrl: response.picture.data.url
+      };
+
+      // Dispatch a login action with the user info
+      dispatch(login(userInfo.email, userInfo.facebookId));
+    });
+  }
+};
+
+  useEffect(() => {
+    /*global FB*/
+    FB.init({
+      appId: "759465309257916",
+      cookie: true,
+      version: "v16.0"
+    });
+
+    FB.getLoginStatus(function(response) {
+      console.log(response);
+      if (response.status === "connected") {
+        handleFBCallbackResponse(response);
+      }
+    });
+  }, []);
+
+  const handleFacebookSignIn = () => {
+    FB.login(function(response) {
+      console.log(response);
+      if (response.status === "connected") {
+        handleFBCallbackResponse(response);
+      }
+    }, { scope: "email" });
+  };
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -101,18 +187,22 @@ const LoginScreen = () => {
                     </button>
 
                     <div className="d-flex justify-content-center text-center mt-4 pt-1">
-                      <a href="#!" className="text-white">
-                        <i className="fab fa-facebook-f fa-lg"></i>
-                      </a>
-                      <a
-                        href="#!"
-                        className="text-white"
-                      >
-                        <i className="fab fa-twitter fa-lg mx-4 px-2"></i>
-                      </a>
-                      <a href="#!" className="text-white">
-                        <i className="fab fa-google fa-lg"></i>
-                      </a>
+                      <div className='btn btn-dark' onClick={handleFacebookSignIn}>
+                        <i className="fab fa-facebook-f fa-lg px-2"></i>
+                      </div>
+                        <TwitterLogin
+                          authCallback={authHandler}
+                          consumerKey='FOyTkyzQijlkbms48QhE5L45Z'
+                          consumerSecret='j3QJXpirLXJ57ujs1gaAPFe6wEp9G4Xq7au0dezoGOqZX567Vg'
+                          style={{display: 'none'}}
+                        >
+                      <div className='btn btn-dark' >
+                        <i className="fab fa-twitter fa-lg px-2"/>
+                      </div>
+                      </TwitterLogin>
+                      <div className='btn btn-dark ' onClick={handleGoogleSignIn}>
+                        <i className="fab fa-google fa-lg px-2"></i>
+                      </div >
                     </div>
                   </div>
 
