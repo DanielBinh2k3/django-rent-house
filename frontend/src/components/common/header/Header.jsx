@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./header.css";
 import { nav } from "../../data/Data";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../../apiRequest/actions/userActions";
 
@@ -12,11 +12,12 @@ const Header = () => {
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { error, loading, userInfo } = userLogin;
-
+  const navigate = useNavigate()
   const logOutHandle = () => {
     const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
       dispatch(logout());
+      navigate('/login')
     }
   };
 
@@ -85,7 +86,7 @@ const onImageMouseLeave = (e) => {
                 >
                   <img
                     className="gb_j gbii"
-                    src="https://lh3.googleusercontent.com/ogw/AOLn63FNpotQGl1xsukyIjPyqS5AkG9ThmkKO8b6xMpzPA=s32-c-mo"
+                    src={userInfo.image_profile}
                     alt="My Profile"
                     onMouseMove={onImageMouseMove}
                     onMouseLeave={onImageMouseLeave}
@@ -101,7 +102,7 @@ const onImageMouseLeave = (e) => {
                   <div className={`dropdown-menu ${profileList ? "show" : ""}`} >
                     <ul className="dropdown-list">
                       <li>
-                        <div >Profile</div>
+                        <div onClick={() => {navigate('/profile')}}>Profile</div>
                       </li>
                       <li>
                         <div onClick={logOutHandle}>

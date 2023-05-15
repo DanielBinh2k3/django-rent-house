@@ -1,8 +1,11 @@
 import React from 'react';
 import { FaBell, FaHeart, FaAddressCard, FaUnlockAlt, FaSignOutAlt } from 'react-icons/fa';
 import './profilescreen.css';
+import { useSelector } from 'react-redux';
 
 const ProfileScreen = () => {
+    const userLogin = useSelector(state=> state.userLogin)
+    const {error, loading, userInfo} = userLogin
   return (
     <>
       <div id="profile" className="mg-container" style={{marginBottom: '4rem'}}>
@@ -12,11 +15,11 @@ const ProfileScreen = () => {
               {/* <!-- SIDEBAR USERPIC --> */}
               <div className="profile-userinfo clearfix line">
                 <div className="profile-userpic">
-                {false ?
+                {true ?
                   <img
                     className="img-responsive"
-                    src="/content/images/avatar.png"
-                    alt="profile"
+                    src={userInfo.image_profile}
+                    alt={"profile of " + userInfo.name} 
                   /> :
                   <img
                     className="img-responsive ng-hide"
@@ -28,9 +31,9 @@ const ProfileScreen = () => {
                 <!-- SIDEBAR USER TITLE --> */}
                 <div className="profile-usertitle">
                   <div className="profile-usertitle-name">
-                    Truong Gia Binh
+                    {userInfo.name}
                   </div>
-                  <div className="profile-usertitle-job">0585783526</div>
+                  <div className="profile-usertitle-job">{userInfo.contact || 'Not have contact yet'}</div>
                 </div>
                 {/* <!-- END SIDEBAR USER TITLE -->
                 <!-- SIDEBAR MENU --> */}
@@ -38,28 +41,28 @@ const ProfileScreen = () => {
              <div className="profile-usermenu clearfix">
                 <ul className="nav navbar-nav">
                     <li className="active">
-                    <a href="/trang-ca-nhan/tim-kiem-da-luu" rel="nofollow">
-                        <FaBell /> Thông báo &amp; Tìm kiếm
+                    <a href="/profile/notification" rel="nofollow">
+                        <FaBell /> Notification &amp; Search
                     </a>
                     </li>
                     <li className="">
-                    <a href="/trang-ca-nhan/bat-dong-san-yeu-thich" rel="nofollow">
-                        <FaHeart /> Bất động sản yêu thích
+                    <a href="/profile/favorite" rel="nofollow">
+                        <FaHeart /> Favourite Property
                     </a>
                     </li>
                     <li className="">
-                    <a href="/trang-ca-nhan/thong-tin-ca-nhan" rel="nofollow">
-                        <FaAddressCard /> Thông tin cá nhân
+                    <a href="/profile/personal-infomation" rel="nofollow">
+                        <FaAddressCard /> Personal Infomation
                     </a>
                     </li>
                     <li className="">
-                    <a href="/trang-ca-nhan/doi-mat-khau" rel="nofollow">
-                        <FaUnlockAlt /> Thay đổi mật khẩu
+                    <a href="/profile/reset-password" rel="nofollow">
+                        <FaUnlockAlt /> Reset Password
                     </a>
                     </li>
                     <li>
                     <a href="/logoff">
-                        <FaSignOutAlt className="f18" /> Thoát
+                        <FaSignOutAlt className="f18" /> Log Out
                     </a>
                     </li>
                 </ul>

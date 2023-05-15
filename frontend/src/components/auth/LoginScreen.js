@@ -5,7 +5,6 @@ import Message from '../common/Message1';
 import Loader from '../common/Loader';
 import { login } from '../../apiRequest/actions/userActions';
 import { Form } from 'react-bootstrap';
-import GoogleLogin from 'react-google-login';
 
 
 const LoginScreen = () => {
@@ -92,9 +91,7 @@ const LoginScreen = () => {
                         Forgot password?
                       </a>
                     </p>
-                    {error && (
-                        <Message variant="danger">{error}</Message>
-                    )}
+                    {error && (<Message variant="danger">{error}</Message>)}
                     {loading && <Loader />}
                     <button
                       className="btn btn-outline-light btn-lg px-5"
@@ -105,15 +102,7 @@ const LoginScreen = () => {
 
                     <div className="d-flex justify-content-center text-center mt-4 pt-1">
                       <a href="#!" className="text-white">
-                        <i className="fab fa-facebook-f fa-lg">    <div>
-      <GoogleLogin
-        clientId="1036092188931-h0uog1a6qkqsljcjemdpeoa60vs9hc7r.apps.googleusercontent.com"
-        buttonText="Login with Google"
-        onSuccess={responseGoogle}
-        onFailure={responseGoogle}
-        cookiePolicy={'single_host_origin'}
-      />
-    </div></i>
+                        <i className="fab fa-facebook-f fa-lg"></i>
                       </a>
                       <a
                         href="#!"

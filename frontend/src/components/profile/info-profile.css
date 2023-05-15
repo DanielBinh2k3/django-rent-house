@@ -1,0 +1,12 @@
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+input:disabled{
+  color:darkgray
+}
+label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}

@@ -71,7 +71,7 @@ const PropertyScreen = () => {
                   </div>
                 </div>
             </div>
-          <div className="col-6 offset-md-1 col-md-3 row">
+          <div className="col-6 col-md-3 row">
             <div className='col' style={{height: '10px'}}>
               <FacebookShareButton url='https://www.facebook.com/'>
                 <FacebookIcon size={24} round={true} />
@@ -260,7 +260,7 @@ const PropertyScreen = () => {
         </div>
         <div style={horizontalLine}></div>
         <div className='row'>
-          <div className='col-md-9'><h5><b>Total Price</b></h5></div>
+          <div className='col-md-9'><h5><b>Total Price</b></h5>(without tax)</div>
           <div className='col-md-3'><b>$1000</b></div>
         </div>
 

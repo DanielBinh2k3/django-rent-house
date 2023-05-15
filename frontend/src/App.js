@@ -13,6 +13,8 @@ import LoginScreen from './components/auth/LoginScreen'
 import RegisterScreen from './components/auth/RegisterScreen'
 import PropertyScreen from './components/property/PropertyScreen'
 import ProfileScreen from './components/profile/ProfileScreen'
+import InformationProfileScreen from './components/profile/InformationPersonal'
+import ResetPassword from './components/profile/ResetPassword'
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
           <Route path='/register' element={<RegisterScreen/>} />
           <Route path='/property' element={<PropertyScreen/>} />
           <Route path='/profile' element={<ProfileScreen/>} />
+          <Route path='/profile/personal-infomation' element={<InformationProfileScreen/>} />
+          <Route path='profile/reset-password' element={<ResetPassword/>} />
         </Routes>
       <ButtonToTop/>
       <Footer/>
