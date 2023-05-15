@@ -1,0 +1,181 @@
+._2hs30c {
+    color: #222222 !important;
+    font-family: Circular,-apple-system,BlinkMacSystemFont,Roboto,Helvetica Neue,sans-serif !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+    line-height: 20px !important;
+    --gp-section-compact-padding: 32px !important;
+    --gp-section-compact-padding-condensed: 16px !important;
+    --gp-section-standard-padding: 48px !important;
+    --gp-section-standard-padding-condensed: 24px !important;
+}
+._1n81at5 {
+    font-size: 26px !important;
+    line-height: 30px !important;
+    font-weight: 600 !important;
+    word-break: break-word !important;
+    margin-bottom: 48px;
+}
+._1qdp1ym {
+    -webkit-box-pack: justify !important;
+    -webkit-box-align: end !important;
+    align-items: flex-end !important;
+    display: flex !important;
+    justify-content: space-between !important;
+}
+._dm2bj1 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    margin-top: 8px !important;
+}
+._s65ijh7 {
+    color: rgb(34, 34, 34) !important;
+    font-family: Circular, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    padding-left: 4px !important;
+    font-weight: 600 !important;
+    text-decoration: underline !important;
+}
+._1jvg42j {
+    -webkit-box-align: center !important;
+    min-width: 0px !important;
+    margin-top: 4px !important;
+    align-items: center !important;
+    display: inline-flex !important;
+}
+.main-content {
+    position: relative !important;
+    width: 58.333333333333336% !important;
+    margin-left: 0% !important;
+    margin-right: 0% !important;
+}
+.dir.he87mfr[class][class] {
+    margin-bottom: 16px;
+}
+.tq51prx[class][class] {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.dir.l1li2ovm[class][class] {
+    margin-bottom: var(--jaa-ni-h);
+}
+
+.l1li2ovm[class][class] {
+    height: 26px;
+    width: fit-content;
+}
+
+.padding-property{
+    padding-top: 48px;
+}
+
+.address {
+    margin-top: 4px;
+    font-weight: normal;
+    font-size: 15px;
+    color: #3c4146;
+    line-height: 22px;
+}
+.price-info {
+    font-weight: bold;
+    font-size: 24px;
+    line-height: 150%;
+    color: #27ae60;
+}
+.info-title {
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 150%;
+    color: #3c4146;
+    margin-top: 32px;
+}
+.info-attrs {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.info-attr {
+  width: 50%;
+  box-sizing: border-box;
+  padding: 5px;
+}
+.info-attr>span:first-child {
+    padding-left: 20px;
+    position: relative;
+    width: 160px;
+    color: #657786;
+}
+
+.info-attr>span {
+    font-size: 15px;
+    line-height: 22px;
+    text-align: left;
+    display: inline-block;
+    float: left;
+}
+.info-attr>span+span {
+    color: #3c4146;
+    width: calc(100% - 160px);
+    overflow: hidden;
+}
+
+.sidebar-order {
+    position: relative !important;
+    width: 33.33333333333333% !important;
+    margin-left: 8.33333333333336% !important;
+    margin-right: 0% !important;
+    left: 3rem;
+}
+span{
+    text-underline-position: below;
+}
+
+._gpz5gq {
+    -webkit-box-lines: multiple !important;
+    -webkit-box-pack: start !important;
+    -ms-flex-pack: start !important;
+    -webkit-box-align: stretch !important;
+    -ms-flex-align: stretch !important;
+    display: -webkit-box !important;
+    display: -moz-box !important;
+    display: -ms-flexbox !important;
+    display: -webkit-flex !important;
+    display: flex !important;
+    -webkit-align-items: stretch !important;
+    align-items: stretch !important;
+    -webkit-justify-content: flex-start !important;
+    justify-content: flex-start !important;
+    -webkit-flex-wrap: wrap !important;
+    -ms-flex-wrap: wrap !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    padding-left: var(--ic-zlb-s) !important;
+    padding-right: var(--ic-zlb-s) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.selected-range {
+    display: inline-block;
+    background-color: #f2f2f2;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.date-range-box {
+    display: flex;
+    align-items: center;
+}
+
+.start-date,
+.end-date {
+    font-weight: bold;
+}
+
+.separator {
+    margin: 0 10px;
+}

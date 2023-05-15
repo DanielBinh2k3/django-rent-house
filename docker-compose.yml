@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  django:
+    build: ./backend
+    volumes:
+      - ./backend:/backend
+    ports:
+      - "8000:8000"
+    restart: always
+
+  react:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/frontend
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - django
+
+
