@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
 User=get_user_model()
 from base.serializers.user_serializers import UserSerializer, SetNewPasswordSerializer, \
-    ResetPasswordEmailRequestSerializer, EmailFormSerializer, LogInSerializer
+    ResetPasswordEmailRequestSerializer, EmailFormSerializer,\
+    LogInSerializer, GetUserDetailsSerializer, UploadProfileImageSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import permissions, status, generics
 from rest_framework_simplejwt.tokens import RefreshToken
 from base.send_email import Util
@@ -65,14 +67,19 @@ class RegisterView(APIView):
 
 class RetrieveUserView(APIView):
     @swagger_auto_schema(responses={200: UserSerializer()})
-    def get(self, request, format=None):
+    def get(self, request, pk, format=None):
         try:
-            user = request.user
-            user = UserSerializer(user)
+            user = User.objects.get(pk=pk)
+            serializer = GetUserDetailsSerializer(user)
 
             return Response(
-                {'user': user.data},
+                {'user': serializer.data},
                 status=status.HTTP_200_OK
+            )   
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'User does not exist'},
+                status=status.HTTP_404_NOT_FOUND
             )
         except:
             return Response(
@@ -107,22 +114,34 @@ class LogInUserView(APIView):
         user = authenticate(request, email=email, password=password)
         if user is not None:
             login(request, user)
-            
-            response_data = {
-                'id': user.id,
-                'name': user.name,
-                'email': user.email,
-                'isAdmin': user.is_staff,
-                'isRealtor': user.is_realtor,
-                'token': str(RefreshToken.for_user(user).access_token),
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+            serializer = GetUserDetailsSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
     # def delete(self, request):
     #     logout(request)
     #     return Response({'success': 'Logout successful'})
 
+
+class UploadProfileImageView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UploadProfileImageSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def put(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+            serializer = self.get_serializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(
+                {'error': 'Something went wrong when retrieving user details'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer
     @swagger_auto_schema(request_body=ResetPasswordEmailRequestSerializer)

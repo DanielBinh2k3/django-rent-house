@@ -2,12 +2,12 @@ from django.urls import path
 from base.views.user_views import RegisterView, RetrieveUserView, \
     VerifyEmail, LogInUserView, SetNewPasswordAPIView, \
     RequestPasswordResetEmail, PasswordTokenCheckAPI, \
-    SupportEmail
+    SupportEmail, UploadProfileImageView
 
 urlpatterns = [
     path('support-email', SupportEmail.as_view(), name='support-email'), 
     path('register', RegisterView.as_view(), name='register'),
-    path('profile', RetrieveUserView.as_view(), name='retrieve-user-view'),
+    path('profile/<int:pk>', RetrieveUserView.as_view(), name='retrieve-user-view'),
     path('email-verify/', VerifyEmail.as_view(), name='email-verify'),
     path('login', LogInUserView.as_view(), name='log-in'),
     path('request-reset-email/', RequestPasswordResetEmail.as_view(),
@@ -16,5 +16,5 @@ urlpatterns = [
          PasswordTokenCheckAPI.as_view(), name='password-reset-confirm'),
     path('password-reset-complete', SetNewPasswordAPIView.as_view(),
          name='password-reset-complete'),
-   
+   path(f'upload-image/<int:pk>', UploadProfileImageView.as_view(),)
 ]
