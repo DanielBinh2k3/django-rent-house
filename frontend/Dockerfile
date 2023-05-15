@@ -7,9 +7,9 @@ WORKDIR /frontend
 # Copy package.json and package-lock.json to container
 COPY package*.json ./
 
-RUN npm install 
+RUN npm install -g npm@
 
-# # Copy the rest of the app code to container
+# Copy the rest of the app code to container
 COPY . .
 
 # Start the app server

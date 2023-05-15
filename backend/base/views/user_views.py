@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status, generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from ..utils import Util
+from base.send_email import Util
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
 import jwt 
@@ -181,14 +181,26 @@ class SupportEmail(generics.GenericAPIView):
     permission_classes = (permissions.AllowAny, )
     @swagger_auto_schema(request_body=EmailFormSerializer)
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            info_email = serializer.data
-            email_body = 'Hi '+ info_email.name + \
-                    'You are the customer who i have ever want. Having any problems contact us by email or phone'
-            data = {'email_body': email_body, 'to_email': info_email.email,
-                    'email_subject': 'Thank you for contacting us'}
-            Util.send_email(data)
-            data['to_email'] = 'truonggiabjnh2003@gmail.com'
-            Util.send_email(data)
+        try:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                info_email = serializer.data
+                print(info_email)
+                email_body = 'Hi '+ info_email['name'] + \
+                        '\nYou are the customer who i have ever want. Having any problems contact us by email or phone'
+                data = {'email_body': email_body, 'to_email': info_email['email'],
+                        'email_subject': 'Thank you for contacting us'}
+                Util.send_email(data)
+                data['to_email'] = 'truonggiabjnh2003@gmail.com'
+                data['subject'] = 'Report from ' + info_email['email']
+                data['email_body'] = info_email['message']
+                Util.send_email(data)
+                return Response({"success": True}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            return Response(
+                {'error': 'Something went wrong when send email'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 

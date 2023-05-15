@@ -1,5 +1,5 @@
 from django.core.mail import EmailMessage
-
+import sys
 
 class Util:
     @staticmethod
@@ -8,3 +8,4 @@ class Util:
             subject=data['email_subject'], body=data['email_body'],  to=[
                 data['to_email']]
         ).send()
+print(sys.path)

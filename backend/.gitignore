@@ -4,8 +4,8 @@
 # Ignore the virtual environment directory
 venv/
 
-# Ignore the Django settings file if it's in the same directory as manage.py
-core/settings.py
+# # Ignore the Django settings file if it's in the same directory as manage.py
+# core/settings.py
 
 # Ignore the .env file that contains sensitive information
 .env

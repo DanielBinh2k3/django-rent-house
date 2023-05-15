@@ -1,25 +1,29 @@
-version: '3.8'
+version: '3'
 
 services:
-  django:
-    build: ./backend
-    volumes:
-      - ./backend:/backend
-    ports:
-      - "8000:8000"
-    restart: always
-
-  react:
+  backend:
     build:
-      context: ./frontend
+      context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/frontend
-    environment:
-      - NODE_ENV=development
+      - "8000:8000"
     depends_on:
-      - django
+      - db
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:8000
 
+  db:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_DB=house_owner
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - /postgres_data:/var/lib/postgresql/data
