@@ -1,0 +1,24 @@
+# Ignore compiled Python files
+*.pyc
+
+# Ignore the virtual environment directory
+venv/
+
+# Ignore the Django settings file if it's in the same directory as manage.py
+core/settings.py
+
+# Ignore the .env file that contains sensitive information
+.env
+
+# Ignore any backup files
+*~
+
+# Ignore the SQLite database file
+db.sqlite3
+
+# Ignore the VS Code settings file
+.vscode/
+
+__pycache__/
+
+*__init__.py
