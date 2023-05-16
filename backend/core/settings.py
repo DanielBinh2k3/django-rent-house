@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import datetime
 import os
+import logging
+from logging.handlers import TimedRotatingFileHandler
 from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
@@ -97,7 +100,7 @@ DATABASES = {
         'NAME': 'house_owner',
         'USER': 'postgres',
         'PASSWORD': '123456',
-        # 'HOST': 'db',
+        'HOST': 'db',
         "PORT": 5432,
     },
 }
@@ -161,7 +164,8 @@ SWAGGER_SETTINGS = {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header'
-        }
+        },
+
     }
 }
 
@@ -185,3 +189,43 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+
+
+# get the current date in the format 'YYYY-MM-DD'
+current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+
+# define the logging settings
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        # configure console logging
+        'console': {
+            'class': 'logging.StreamHandler',
+            'level': 'INFO',
+        },
+        # configure file logging
+        'file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': f'./logs/debug{current_date}.log',
+            'when': 'midnight',
+            'backupCount': 7,
+            'level': 'DEBUG',
+            'formatter': 'simpleRe',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+    },
+    'formatters': {
+        'simpleRe': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        }
+    }
+}
+# get the logger for the project
+logger = logging.getLogger(__name__)

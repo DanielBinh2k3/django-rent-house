@@ -12,6 +12,11 @@ from django.http import Http404
 import json
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class ManageListingView(APIView):
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -20,9 +25,13 @@ class ManageListingView(APIView):
         responses={200: PropertySerializer(many=True)}
     )
     def get(self, request):
-        listings = Listing.objects.filter(realtor=request.user).all()
-        serializer = PropertySerializer(listings, many=True)
-        return Response(serializer.data)
+        try:
+            listings = Listing.objects.filter(realtor=request.user).all()
+            serializer = PropertySerializer(listings, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.exception(str(e))
+            return Response({'error': 'An error occurred while retrieving listings.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Create a new property listing",
@@ -36,20 +45,24 @@ class ManageListingView(APIView):
         }
     )
     def post(self, request):
-        user = request.user
-        if not user.is_realtor:
-            return Response(
-                {'error': 'User does not have necessary permissions for creating this listing data'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        try:
+            user = request.user
+            if not user.is_realtor:
+                return Response(
+                    {'error': 'User does not have necessary permissions for creating this listing data'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        serializer = PropertySerializer(
-            data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = PropertySerializer(
+                data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception(str(e))
+            return Response({'error': 'An error occurred while creating the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an existing property listing",
@@ -64,23 +77,27 @@ class ManageListingView(APIView):
         }
     )
     def put(self, request, pk):
-        user = request.user
-        if not user.is_realtor:
-            return Response(
-                {'error': 'User does not have necessary permissions for updating this listing data'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        try:
+            user = request.user
+            if not user.is_realtor:
+                return Response(
+                    {'error': 'User does not have necessary permissions for updating this listing data'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        listing = get_object_or_404(
-            Listing.objects.filter(realtor=user), pk=pk)
-        serializer = PropertySerializer(
-            instance=listing, data=request.data, partial=True, context={'request': request})
+            listing = get_object_or_404(
+                Listing.objects.filter(realtor=user), pk=pk)
+            serializer = PropertySerializer(
+                instance=listing, data=request.data, partial=True, context={'request': request})
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.exception(str(e))
+            return Response({'error': 'An error occurred while updating the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Delete an existing property listing",
@@ -91,18 +108,22 @@ class ManageListingView(APIView):
         }
     )
     def delete(self, request, pk):
-        user = request.user
-        if not user.is_realtor:
-            return Response(
-                {'error': 'User does not have necessary permissions for deleting this listing data'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        try:
+            user = request.user
+            if not user.is_realtor:
+                return Response(
+                    {'error': 'User does not have necessary permissions for deleting this listing data'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
 
-        listing = get_object_or_404(
-            Listing.objects.filter(realtor=user), pk=pk)
-        listing.delete()
+            listing = get_object_or_404(
+                Listing.objects.filter(realtor=user), pk=pk)
+            listing.delete()
 
-        return Response({'message': 'Listing deleted successfully.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Listing deleted successfully.'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(str(e))
+            return Response({'error': 'An error occurred while deleting the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ListingDetailView(APIView):
@@ -132,19 +153,20 @@ class ListingDetailView(APIView):
             )
 
         except Listing.DoesNotExist:
+            logger.error(f'Listing with slug "{slug}" not found.')
             return Response(
                 {'error': 'Listing not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        except:
-            return Response(
-                {'error': 'Something went wrong when retrieving the listing'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        except Exception as e:
+            logger.exception(str(e))
+            return Response({'error': 'An error occurred while retrieving the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ListingPkDetailView(APIView):
+    logger = logging.getLogger(__name__)
+
     def get_object(self, pk):
         try:
             return Listing.objects.get(pk=pk)
@@ -161,10 +183,24 @@ class ListingPkDetailView(APIView):
         }
     )
     def get(self, request, pk):
-        property = self.get_object(pk)
-        serializer = PropertySerializer(property)
-        serialized_data = serializer.data  # Convert serialized data to a dictionary
-        return Response(json.dumps(serialized_data), content_type='application/json')
+        try:
+            property = self.get_object(pk)
+            serializer = PropertySerializer(property)
+            serialized_data = serializer.data  # Convert serialized data to a dictionary
+            return Response(json.dumps(serialized_data), content_type='application/json')
+
+        except Http404:
+            return Response(
+                {'error': 'Listing does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when retrieving property'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @swagger_auto_schema(
         operation_description="Update an existing property listing",
@@ -222,7 +258,8 @@ class ListingPkDetailView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        except:
+        except Exception as e:
+            self.logger.exception(e)
             return Response(
                 {'error': 'Something went wrong when updating property'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -237,12 +274,28 @@ class ListingPkDetailView(APIView):
         }
     )
     def delete(self, request, pk):
-        property = self.get_object(pk)
-        property.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            property = self.get_object(pk)
+            property.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        except Http404:
+            return Response(
+                {'error': 'Listing does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when deleting property'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ListingsView(APIView):
+    logger = logging.getLogger(__name__)
+
     permission_classes = (permissions.AllowAny, )
 
     @swagger_auto_schema(
@@ -269,7 +322,9 @@ class ListingsView(APIView):
                 listings.data,
                 status=status.HTTP_200_OK
             )
-        except:
+
+        except Exception as e:
+            self.logger.exception(e)
             return Response(
                 {'error': 'Something went wrong when retrieving listings'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -277,6 +332,8 @@ class ListingsView(APIView):
 
 
 class SearchListingView(APIView):
+    logger = logging.getLogger(__name__)
+
     permission_classes = (permissions.AllowAny, )
 
     @swagger_auto_schema(
@@ -293,35 +350,46 @@ class SearchListingView(APIView):
         responses={status.HTTP_200_OK: PropertySerializer(many=True)}
     )
     def get(self, request):
-        # Get query parameters
-        home_type = request.GET.get('home_type')
-        city = request.GET.get('city')
-        max_price = request.GET.get('max_price')
-        search_term = request.GET.get('search_term')
+        try:
+            # Get query parameters
+            home_type = request.GET.get('home_type')
+            city = request.GET.get('city')
+            max_price = request.GET.get('max_price')
+            search_term = request.GET.get('search_term')
 
-        # Build query set with all listings
-        queryset = Listing.objects.all()
+            # Build query set with all listings
+            queryset = Listing.objects.all()
 
-        # Filter by home_type
-        if home_type:
-            queryset = queryset.filter(home_type__icontains=home_type)
+            # Filter by home_type
+            if home_type:
+                queryset = queryset.filter(home_type__icontains=home_type)
 
-        # Filter by city
-        if city:
-            queryset = queryset.filter(city__icontains=city)
+            # Filter by city
+            if city:
+                queryset = queryset.filter(city__icontains=city)
 
-        # Filter by max_price
-        if max_price:
-            queryset = queryset.filter(price__lte=max_price)
+            # Filter by max_price
+            if max_price:
+                queryset = queryset.filter(price__lte=max_price)
 
-        # Search by title or slug
-        if search_term:
-            queryset = queryset.filter(
-                Q(title__icontains=search_term) | Q(slug__icontains=search_term))
+            # Search by title or slug
+            if search_term:
+                queryset = queryset.filter(
+                    Q(title__icontains=search_term) | Q(slug__icontains=search_term))
 
-        # Serialize and return results
-        serializer = PropertySerializer(queryset, many=True)
-        return Response(serializer.data)
+            # Serialize and return results
+            serializer = PropertySerializer(queryset, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when searching for listings'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+logger = logging.getLogger(__name__)
 
 
 class OrderListingNormalView(APIView):
@@ -336,9 +404,13 @@ class OrderListingNormalView(APIView):
         },
     )
     def get(self, request):
-        orders = Order.objects.filter(listing__realtor=request.user)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            orders = Order.objects.filter(listing__realtor=request.user)
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"An error occurred while retrieving orders: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_summary="Create an order",
@@ -355,12 +427,16 @@ class OrderListingNormalView(APIView):
         ),
     )
     def post(self, request):
-        serializer = OrderSerializer(
-            data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = OrderSerializer(
+                data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"An error occurred while creating an order: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_summary="Update an order",
@@ -376,14 +452,16 @@ class OrderListingNormalView(APIView):
     def put(self, request, pk):
         try:
             order = Order.objects.get(pk=pk, listing__realtor=request.user)
+            serializer = OrderSerializer(order, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Order.DoesNotExist:
             return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = OrderSerializer(order, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"An error occurred while updating an order: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_summary="Delete an order",
@@ -397,11 +475,13 @@ class OrderListingNormalView(APIView):
     def delete(self, request, pk):
         try:
             order = Order.objects.get(pk=pk, listing__realtor=request.user)
+            order.delete()
+            return Response({'success': "You deleted the order successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Order.DoesNotExist:
             return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        order.delete()
-        return Response({'success': "You deleted the order successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            logger.error(f"An error occurred while deleting an order: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -415,34 +495,38 @@ class OrderListingNormalView(APIView):
     required=['id', 'image_type', 'image']
 ))
 def uploadImages(request):
-    data = request.data
-
-    # Extract the product ID and image type from the request data
-    product_id = data['id']
-    image_type = data['image_type']
-
-    # Get the product with the given ID
     try:
-        product = Listing.objects.get(id=product_id)
-    except Listing.DoesNotExist:
-        return Response(f'Product with ID {product_id} does not exist', status=404)
+        data = request.data
 
-    # Update the image field with the uploaded image file
-    file = request.FILES.get('image')
-    if file is not None:
-        if image_type == 'main_photo':
-            product.main_photo = file
-        elif image_type.startswith('photo') and len(image_type) == 6 and image_type[-1].isdigit():
-            index = int(image_type[-1])
-            if index >= 1 and index <= 4:
-                setattr(product, image_type, file)
+        # Extract the product ID and image type from the request data
+        product_id = data['id']
+        image_type = data['image_type']
+
+        # Get the product with the given ID
+        try:
+            product = Listing.objects.get(id=product_id)
+        except Listing.DoesNotExist:
+            return Response(f'Product with ID {product_id} does not exist', status=404)
+
+        # Update the image field with the uploaded image file
+        file = request.FILES.get('image')
+        if file is not None:
+            if image_type == 'main_photo':
+                product.main_photo = file
+            elif image_type.startswith('photo') and len(image_type) == 6 and image_type[-1].isdigit():
+                index = int(image_type[-1])
+                if index >= 1 and index <= 4:
+                    setattr(product, image_type, file)
+                else:
+                    return Response('Invalid image type', status=400)
             else:
                 return Response('Invalid image type', status=400)
-        else:
-            return Response('Invalid image type', status=400)
 
-    # Save the changes to the database
-    product.save()
+        # Save the changes to the database
+        product.save()
 
-    # Return a success response
-    return Response('Image was uploaded successfully')
+        # Return a success response
+        return Response('Image was uploaded successfully')
+    except Exception as e:
+        logger.error(f"An error occurred while uploading an image: {e}")
+        return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
