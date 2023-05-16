@@ -11,7 +11,9 @@ from drf_yasg import openapi
 from django.http import Http404
 import json
 
+
 class ManageListingView(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
 
     @swagger_auto_schema(
         operation_description="Get all listings associated with a realtor",
@@ -142,14 +144,13 @@ class ListingDetailView(APIView):
             )
 
 
-
 class ListingPkDetailView(APIView):
     def get_object(self, pk):
         try:
             return Listing.objects.get(pk=pk)
         except Listing.DoesNotExist:
             raise Http404
-        
+
     @swagger_auto_schema(
         operation_description="Get a single property listing by ID",
         responses={
@@ -325,6 +326,7 @@ class SearchListingView(APIView):
 
 class OrderListingNormalView(APIView):
     permission_classes = (permissions.IsAuthenticated, )
+
     @swagger_auto_schema(
         operation_summary="Get a list of orders",
         operation_description="This endpoint allows authenticated users to retrieve a list of their orders.",
@@ -400,6 +402,7 @@ class OrderListingNormalView(APIView):
 
         order.delete()
         return Response({'success': "You deleted the order successfully"}, status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(['POST'])
 @swagger_auto_schema(request_body=openapi.Schema(
