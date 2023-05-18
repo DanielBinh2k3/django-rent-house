@@ -1,3 +1,5 @@
+from dateutil.relativedelta import relativedelta
+from django.utils.timezone import now
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser, BaseUserManager,
@@ -47,6 +49,7 @@ class UserAccountManager(BaseUserManager):
 AUTH_PROVIDERS = {'facebook': 'facebook', 'google': 'google',
                   'twitter': 'twitter', 'email': 'email'}
 
+
 class UserAccount(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
@@ -70,11 +73,24 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-from django.db import models
-from django.utils.timezone import now
-from dateutil.relativedelta import relativedelta
+
+class City(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
+class District(models.Model):
+    name = models.CharField(max_length=255)
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
 
 class Listing(models.Model):
+
     class HomeType(models.TextChoices):
         HOUSE = 'House'
         CONDO = 'Condo'
@@ -83,8 +99,8 @@ class Listing(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     address = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    state = models.CharField(max_length=255)
+    city = models.ForeignKey(City, on_delete=models.CASCADE)
+    district = models.ForeignKey(District, on_delete=models.CASCADE)
     zipcode = models.CharField(max_length=20)
     description = models.TextField()
     price = models.IntegerField()
@@ -93,11 +109,16 @@ class Listing(models.Model):
     bathrooms = models.IntegerField()
     home_type = models.CharField(
         max_length=10, choices=HomeType.choices, default=HomeType.HOUSE)
-    main_photo = models.ImageField(upload_to='listings/')
-    photo1 = models.ImageField(upload_to='listings/')
-    photo2 = models.ImageField(upload_to='listings/')
-    photo3 = models.ImageField(upload_to='listings/')
-    photo4 = models.ImageField(upload_to='listings/')
+    main_photo = models.ImageField(
+        upload_to='listings/', default='listings/placeholder.png')
+    photo1 = models.ImageField(
+        upload_to='listings/', default='listings/placeholder.png')
+    photo2 = models.ImageField(
+        upload_to='listings/', default='listings/placeholder.png')
+    photo3 = models.ImageField(
+        upload_to='listings/', default='listings/placeholder.png')
+    photo4 = models.ImageField(
+        upload_to='listings/', default='listings/placeholder.png')
     is_published = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=now)
 

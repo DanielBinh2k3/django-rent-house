@@ -100,7 +100,7 @@ DATABASES = {
         'NAME': 'house_owner',
         'USER': 'postgres',
         'PASSWORD': '123456',
-        'HOST': 'db',
+        # 'HOST': 'db',
         "PORT": 5432,
     },
 }
@@ -213,12 +213,38 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'simpleRe',
         },
+        # configure SQL logging
+        'sql_file': {
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': f'./logs/sql{current_date}.log',
+            'when': 'midnight',
+            'backupCount': 7,
+            'level': 'DEBUG',
+            'formatter': 'simpleRe',
+        },
     },
     'loggers': {
-        '': {
+        'base.views.listing_views': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
         },
+        'base.views.user_views': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'base.utils.exception_handler': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'django.utils.autoreload': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+        },
+        'django.db.backends': {
+            'handlers': ['sql_file'],
+            'level': 'DEBUG',
+        },
+
     },
     'formatters': {
         'simpleRe': {

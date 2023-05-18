@@ -15,7 +15,10 @@ def custom_exception_handler(exc, context):
         'NotAuthenticated': _handle_authentication_error,
         'AuthenticationFailed': _handle_authentication_error,
     }
+    print(exc)
+    print(context)
     response = exception_handler(exc, context)
+
     if response is not None:
         if 'AuthUserAPIView' in str(context['view']) and exc.status_code == 401:
             response.status_code = 200
@@ -26,7 +29,7 @@ def custom_exception_handler(exc, context):
     else:
         response = Response({'error': 'An error occurred on the server. Please contact us for more information.'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        logger.critical(response, context)
+        logger.critical(response, exc_info=exc)
     exception_class = exc.__class__.__name__
     print(exception_class)
     if exception_class in handlers:
@@ -40,7 +43,7 @@ def _handle_authentication_error(exc, context, response):
         'error': 'Please login to proceed',
         'status_code': response.status_code
     }
-    logger.error(response_data, context)
+    logger.error('log in failed')
     return Response(response_data, status=response.status_code)
 
 

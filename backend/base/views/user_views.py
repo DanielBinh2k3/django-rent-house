@@ -26,7 +26,6 @@ from django.contrib.auth import get_user_model
 import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
-print(logger)
 
 
 class RegisterView(APIView):

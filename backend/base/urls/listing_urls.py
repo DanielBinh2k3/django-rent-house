@@ -11,5 +11,6 @@ urlpatterns = [
     path('detail/<int:pk>', ListingPkDetailView.as_view()),
     path('search', SearchListingView.as_view()),
     path('order', OrderListingNormalView.as_view()),
-    path('upload-image', listing_views.uploadImages,)
+    # path('manage/order', OrderListingRealtorView.as_view()),
+    path('upload-image', listing_views.uploadImages),
 ]

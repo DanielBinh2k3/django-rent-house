@@ -9,16 +9,14 @@ from base.serializers.listing_serializers import PropertySerializer, OrderSerial
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.http import Http404
-import json
-
-
+from core.custom_permission import IsRealtor
 import logging
-
+import json
 logger = logging.getLogger(__name__)
 
 
 class ManageListingView(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (IsRealtor, )
 
     @swagger_auto_schema(
         operation_description="Get all listings associated with a realtor",
@@ -46,13 +44,6 @@ class ManageListingView(APIView):
     )
     def post(self, request):
         try:
-            user = request.user
-            if not user.is_realtor:
-                return Response(
-                    {'error': 'User does not have necessary permissions for creating this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
             serializer = PropertySerializer(
                 data=request.data, context={'request': request})
             if serializer.is_valid():
@@ -79,12 +70,6 @@ class ManageListingView(APIView):
     def put(self, request, pk):
         try:
             user = request.user
-            if not user.is_realtor:
-                return Response(
-                    {'error': 'User does not have necessary permissions for updating this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
             listing = get_object_or_404(
                 Listing.objects.filter(realtor=user), pk=pk)
             serializer = PropertySerializer(
@@ -110,12 +95,7 @@ class ManageListingView(APIView):
     def delete(self, request, pk):
         try:
             user = request.user
-            if not user.is_realtor:
-                return Response(
-                    {'error': 'User does not have necessary permissions for deleting this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
+            # Using that to get just only one object when every condition is match, in this case we can use 2 filter could be work well
             listing = get_object_or_404(
                 Listing.objects.filter(realtor=user), pk=pk)
             listing.delete()
@@ -405,7 +385,7 @@ class OrderListingNormalView(APIView):
     )
     def get(self, request):
         try:
-            orders = Order.objects.filter(listing__realtor=request.user)
+            orders = Order.objects.filter(renter_email=request.user)
             serializer = OrderSerializer(orders, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
@@ -469,6 +449,81 @@ class OrderListingNormalView(APIView):
         responses={
             204: "Order deleted successfully.",
             401: "Authentication credentials were not provided.",
+            404: "Order not found.",
+        },
+    )
+    def delete(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk, listing__realtor=request.user)
+            order.delete()
+            return Response({'success': "You deleted the order successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Order.DoesNotExist:
+            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"An error occurred while deleting an order: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class OrderListingRealtorView(OrderListingNormalView):
+    permission_classes = (permissions.IsAuthenticated, IsRealtor)
+
+    @swagger_auto_schema(
+        operation_summary="Get a list of orders for a realtor",
+        operation_description="This endpoint allows authenticated realtors to retrieve a list of their orders.",
+        responses={
+            200: OrderSerializer(many=True),
+            401: "Authentication credentials were not provided.",
+        },
+    )
+    def get(self, request):
+        try:
+            orders = Order.objects.filter(listing__realtor=request.user)
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"An error occurred while retrieving orders: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_summary="Update an order by a realtor",
+        operation_description="This endpoint allows authenticated realtors to update an existing order.",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'state': openapi.Schema(type=openapi.TYPE_STRING),
+            },
+            required=['state']
+        ),
+        responses={
+            200: OrderSerializer(),
+            400: "Bad request.",
+            401: "Authentication credentials were not provided or the user is not a realtor.",
+            404: "Order not found.",
+        },
+    )
+    def put(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk, listing__realtor=request.user)
+            state = request.data.get('state')
+            if state == 'success' or state == 'decline':
+                order.state = state
+                order.save()
+                serializer = OrderSerializer(order)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"detail": "Invalid state value."}, status=status.HTTP_400_BAD_REQUEST)
+        except Order.DoesNotExist:
+            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"An error occurred while updating an order: {e}")
+            return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @swagger_auto_schema(
+        operation_summary="Delete an order by a realtor",
+        operation_description="This endpoint allows authenticated realtors to delete an existing order.",
+        responses={
+            204: "Order deleted successfully.",
+            401: "Authentication credentials were not provided or the user is not a realtor.",
             404: "Order not found.",
         },
     )
