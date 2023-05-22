@@ -14,5 +14,7 @@ RUN npm install --force
 # Copy the rest of the app code to container
 COPY . .
 
+RUN npm run build
+
 # Start the app server
 CMD ["npm", "start"]

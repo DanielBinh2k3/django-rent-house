@@ -26,7 +26,7 @@ import {
 export const getPublicListings = () => async (dispatch) =>{
     try{
         dispatch({type: LISTING_LIST_REQUEST})
-        const {data} = await axios.get('http://localhost:8000/api/listing/get-listings')
+        const {data} = await axios.get(`/api/listing/get-listings`)
         dispatch({
             type:LISTING_LIST_SUCCESS,
             payload: data

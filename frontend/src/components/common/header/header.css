@@ -6,7 +6,6 @@ header {
   position: sticky;
   display: flex;
   top: 0;
-  z-index: 99999;
 }
 header img {
   width: 170px;

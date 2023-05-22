@@ -6,13 +6,20 @@ import { getPublicListings } from "../../../apiRequest/actions/listingActions"
 const RecentCard = () => {
   const dispatch = useDispatch()
   const listingList = useSelector(state => state.listingList)
-  const {error, loading ,listings} =listingList
-  useEffect (() => {
+  const {error, loading, listings} = listingList
+
+  useEffect(() => {
     dispatch(getPublicListings())
-  }, [])
-    return (
+  }, [dispatch])
+
+  useEffect(() => {
+    console.log(error, loading, listings)
+    console.log(listings['results'])
+  }, [error, loading, listings])
+
+  return (
     <div className='content grid3 mtop'>
-      {listings && listings.map(listing => (
+       {listings && listings.results && listings.results.map(listing => (
         <div className='box shadow' key={listing.id}>
           <div className='img'>
             <img src={listing.main_photo} alt=''  style={{height: '16rem'}}/>

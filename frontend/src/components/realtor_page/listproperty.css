@@ -1,0 +1,242 @@
+#main-listproperty {
+    width: 60%;
+    margin-top: 4rem;
+    padding: 0 20px;
+    padding-bottom: 10rem;
+    border-radius: 4px;
+    position: relative;
+    min-height: 500px;
+    margin-bottom: 4rem;
+}
+.property-tabs ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-left: -20px;
+}
+
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.property-tabs ul li {
+    float: left;
+    padding: 15px 30px;
+    color: #76767c;
+    font-size: 18px;
+    line-height: 28px;
+    cursor: pointer;
+}
+.property-commands {
+    background-color: #f8f8f8;
+    margin: 0 -20px;
+    font-size: 14px;
+    color: #222;
+    height: fit-content ;
+}
+.property-commands ul {
+    list-style: none;
+    padding: 10px 20px;
+    margin: 0;
+}
+.property-commands .property-selected-all {
+    margin: 3px 10px 0 5px;
+}
+.mg-check {
+    top: 20px;
+    left: 6px;
+    width: 26px;
+    height: 26px;
+    line-height: 24px;
+    font-size: 16px;
+    background-color: #fff;
+    color: #ccc;
+    text-align: center;
+    border-radius: 5px;
+    border: solid 1px #ccc;
+    cursor: pointer;
+}
+.property-commands ul li.search {
+    float: right;
+}
+
+.property-commands ul li {
+    float: left;
+    color: #76767c;
+    font-size: 13px;
+}
+.property {
+    padding: 15px 0;
+    position: relative;
+    border-bottom: 1px solid #f5f5f5;
+}
+.property-media {
+    position: relative;
+    width: 180px;
+    height: 135px;
+    float: left;
+}
+.property-media img {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+}
+img {
+    vertical-align: middle;
+}
+img {
+    border: 0;
+}
+.property-label {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    background-color: #11b666;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.property-info {
+    float: left;
+    width: calc(100% - 180px);
+    padding-left: 20px;
+}
+.property-commands ul li.search {
+    float: right;
+}
+.property-commands ul li {
+    float: left;
+    color: #76767c;
+    font-size: 13px;
+}
+.property-commands ul li.search input {
+    border: 1px solid #bcbcbc;
+    padding: 0 8px;
+    height: 30px;
+    width: 150px;
+    border-radius: 1px;
+}
+.property-commands .btn-mogi-2 {
+    font-size: 14px;
+    height: 30px;
+}
+.btn-mogi-2 {
+    color: #333;
+    background: #00deb6;
+    border: 0;
+    font-size: 14px;
+    padding: 5px 10px;
+    min-width: 100px;
+    border-radius: 3px;
+}
+.property-title {
+    font-size: 16px;
+    line-height: 24px;
+    color: #262637;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-right: 15px;
+}
+a, a:focus, a:hover, a:active {
+    text-decoration: none!important;
+    cursor: pointer;
+}
+.property-info-list {
+    list-style: none;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+.property-info-list li {
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.property-price-1 {
+    font-size: 18px;
+    line-height: 27px;
+    color: #00737c;
+    font-weight: 600;
+    margin-top: 5px;
+}
+.spliter>span {
+    padding: 0 5px;
+    font-size: 14px;
+    line-height: 27px;
+    color: #7a7a7a;
+}
+.property-services {
+    float: left;
+    width: calc(100% - 180px);
+    padding-left: 20px;
+}
+.property-created-lastused-services {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.property-created-lastused-services li {
+    display: block;
+    max-width: 170px;
+    padding: 1px 0;
+}
+.property-created-lastused-services li>span:last-child {
+    padding-left: 15px;
+    float: right;
+}
+
+.property-created-lastused-services li>span {
+    font-size: 12px;
+    line-height: 18px;
+    color: #a7a7a7;
+    float: left;
+}
+.services-controls {
+    position: absolute;
+    right: 0;
+    bottom: 20px;
+}
+.property-buy-service {
+    text-align: right;
+    float: right;
+    margin-left: 5px;
+}
+.property-refresh {
+    float: right;
+}
+.clearfix {
+    overflow: auto;
+}
+.btn-mogi-1 {
+    border: 1px solid #00737c;
+    border-radius: 3px;
+    background-color: #f0f8f8;
+    color: #00737c;
+    font-size: 14px;
+    padding: 5px 10px;
+    text-decoration: none;
+}
+.service-counter {
+    height: 20px;
+    width: 20px;
+    background: red;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    text-align: center;
+    border-radius: 10px;
+}
+.property-tabs ul li.active {
+    border-bottom: 2px solid #00737c;
+    color: #00737c;
+}
+.property-list{
+    height: 100%;
+}

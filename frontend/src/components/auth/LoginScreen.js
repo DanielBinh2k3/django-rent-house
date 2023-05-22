@@ -42,16 +42,30 @@ const LoginScreen = () => {
   function handleGoogleCallbackResponse(response) {
     console.log("Encoded JWT ID token: " + response.credential);
     var userObject = jwt_decode(response.credential);
-    console.log(userObject);
-
-    const userInfo = {
-      name: userObject.name,
-      email: userObject.email,
-      googleId: userObject.sub
-    };
-
-    // Dispatch a login action with the user info
-    dispatch(login(userInfo.email, userInfo.googleId));
+    console.log(userObject)
+    // For Google authentication
+    fetch(`/social-auth/google/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ auth_token: response.credential }), // Replace idToken with the actual token from Google
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Authentication failed');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Dispatch a login action with the user info
+        dispatch(login(userObject.email, 'BRzCuF())Un!6cE8atX#VHj7'));
+      })
+      .catch(error => {
+        // Handle errors here
+        console.log('error')
+        console.log(error)
+      });
   }
 
   useEffect(() => {
@@ -83,20 +97,40 @@ const handleGoogleSignIn = () => {
 
 
 const handleFBCallbackResponse = (response) => {
-  console.log("Facebook login response: ", response);
+  console.log("Facebook login access token: ", response.authResponse.accessToken);
+  const auth_token = response.authResponse.accessToken;
   if (response.status === "connected") {
     // Use the Facebook SDK to retrieve the user's basic profile information
     FB.api("/me", { fields: "name,email,id,picture.width(200)" }, function(response) {
       console.log("Facebook user profile: ", response);
-      const userInfo = {
+      const userObject = {
         name: response.name,
         email: response.email,
         facebookId: response.id,
         profilePictureUrl: response.picture.data.url
       };
-
-      // Dispatch a login action with the user info
-      dispatch(login(userInfo.email, userInfo.facebookId));
+    fetch(`/social-auth/facebook/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ auth_token: auth_token }), // Replace idToken with the actual token from Google
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Authentication failed');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Dispatch a login action with the user info
+        dispatch(login(userObject.email, 'BRzCuF())Un!6cE8atX#VHj7'));
+      })
+      .catch(error => {
+        // Handle errors here
+        console.log('error')
+        console.log(error)
+      });
     });
   }
 };

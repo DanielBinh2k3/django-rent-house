@@ -176,3 +176,36 @@ img {
   /* other styles */
   z-index: 9999;
 }
+.not-found-container{
+  margin: 10% 30%;
+  margin-bottom: 20%;
+  justify-content: center;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+}
+.form-container{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.step-indicator{
+    display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.step{
+  display: flex;
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+  font-size: small;
+  width: 48px;
+  height: 48px;
+  color: white;
+}
+.active{
+  color: green
+}
+

@@ -58,6 +58,7 @@ export const login = (email, password) => async (dispatch) => {
 }
 export const logout = () => (dispatch) => {
     localStorage.removeItem('userInfo')
+    FB.logout()
     dispatch({
         type: USER_LOGOUT,
     })
