@@ -12,11 +12,13 @@ from django.http import Http404
 from core.custom_permission import IsRealtor
 import logging
 import json
+from base.pagination import CustomPageNumberPagination
 logger = logging.getLogger(__name__)
 
 
 class ManageListingView(APIView):
-    permission_classes = (IsRealtor, )
+    permission_classes = (IsRealtor, permissions.IsAdminUser)
+    serializer_class = PropertySerializer
 
     @swagger_auto_schema(
         operation_description="Get all listings associated with a realtor",
@@ -24,6 +26,7 @@ class ManageListingView(APIView):
     )
     def get(self, request):
         try:
+            # add pagination, search for owner
             listings = Listing.objects.filter(realtor=request.user).all()
             serializer = PropertySerializer(listings, many=True)
             return Response(serializer.data)
@@ -33,6 +36,7 @@ class ManageListingView(APIView):
 
     @swagger_auto_schema(
         operation_description="Create a new property listing",
+        request_body=PropertySerializer,
         responses={
             201: openapi.Response(
                 description="Created",
@@ -146,6 +150,7 @@ class ListingDetailView(APIView):
 
 class ListingPkDetailView(APIView):
     logger = logging.getLogger(__name__)
+    permission_classes = (IsRealtor, permissions.IsAdminUser)
 
     def get_object(self, pk):
         try:
@@ -198,12 +203,6 @@ class ListingPkDetailView(APIView):
     def put(self, request, pk):
         try:
             user = request.user
-            if not user.is_realtor:
-                return Response(
-                    {'error': 'User does not have necessary permissions for updating this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
             listing = Listing.objects.get(id=pk)
             if str(listing) != str(user):
                 return Response(
@@ -277,6 +276,7 @@ class ListingsView(APIView):
     logger = logging.getLogger(__name__)
 
     permission_classes = (permissions.AllowAny, )
+    pagination_class = CustomPageNumberPagination
 
     @swagger_auto_schema(
         operation_description="Get a list of all published property listings",
@@ -296,12 +296,12 @@ class ListingsView(APIView):
 
             listings = Listing.objects.order_by(
                 '-date_created').filter(is_published=True)
-            listings = PropertySerializer(listings, many=True)
+            paginator = self.pagination_class()
+            page = paginator.paginate_queryset(Listing.objects.filter(
+                is_published=True).order_by('-date_created'), request)
+            listings = PropertySerializer(page, many=True)
 
-            return Response(
-                listings.data,
-                status=status.HTTP_200_OK
-            )
+            return paginator.get_paginated_response(listings.data)
 
         except Exception as e:
             self.logger.exception(e)
@@ -329,24 +329,25 @@ class SearchListingView(APIView):
         ],
         responses={status.HTTP_200_OK: PropertySerializer(many=True)}
     )
-    def get(self, request):
+    def get(self, request, queryset=None):
         try:
             # Get query parameters
             home_type = request.GET.get('home_type')
-            city = request.GET.get('city')
+            # city = request.GET.get('city')
             max_price = request.GET.get('max_price')
             search_term = request.GET.get('search_term')
 
             # Build query set with all listings
-            queryset = Listing.objects.all()
+            if queryset == None:
+                queryset = Listing.objects.all()
 
             # Filter by home_type
             if home_type:
                 queryset = queryset.filter(home_type__icontains=home_type)
 
-            # Filter by city
-            if city:
-                queryset = queryset.filter(city__icontains=city)
+            # # Filter by city
+            # if city:
+            #     queryset = queryset.filter(city__icontains=city)
 
             # Filter by max_price
             if max_price:
@@ -358,8 +359,49 @@ class SearchListingView(APIView):
                     Q(title__icontains=search_term) | Q(slug__icontains=search_term))
 
             # Serialize and return results
+            print(type(queryset))
             serializer = PropertySerializer(queryset, many=True)
             return Response(serializer.data)
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when searching for listings'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SearchListingRealtorView(SearchListingView):
+    permission_classes = (IsRealtor, permissions.IsAdminUser)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('is_published', openapi.IN_QUERY,
+                              description="Filter by public status", type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('state', openapi.IN_QUERY,
+                              description="Filter by state", type=openapi.TYPE_STRING),
+        ],
+        responses={status.HTTP_200_OK: PropertySerializer(many=True)}
+    )
+    def get(self, request):
+        try:
+            # Get query parameters
+            is_published = request.GET.get('is_published')
+            # state = request.GET.get('state')
+
+            # Build query set with all listings for the authenticated realtor
+            queryset = Listing.objects.filter(realtor=request.user)
+
+            # Filter by public status, if is_published query parameter is present
+            if is_published is not None:
+                queryset = queryset.filter(
+                    is_published__icontains=is_published)  # icontains va contains
+
+            # Call parent class method to filter by home_type, city, max_price, search_term, and is_published
+            serialized_data = super().get(request, queryset=queryset).data
+
+            # Serialize and return results
+            return Response(serialized_data)
 
         except Exception as e:
             self.logger.exception(e)

@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from base.models import Listing, Order
 from django.db import models
+from django.core.files.images import ImageFile
+import requests
+from unidecode import unidecode
 
 
 class PropertySerializer(serializers.ModelSerializer):
@@ -23,11 +26,11 @@ class PropertySerializer(serializers.ModelSerializer):
         validated_data['realtor'] = user.email
 
         # Generate the slug based on the title and the next available ID
-        max_id = Listing.objects.aggregate(models.Max('id'))['id__max'] or 0
         validated_data['slug'] = '-'.join(
-            validated_data['title'].split()) + '-' + str(max_id + 1)
+            unidecode(validated_data['title']).split())
 
         property = Listing.objects.create(**validated_data)
+        # update slug after create
         return property
 
 

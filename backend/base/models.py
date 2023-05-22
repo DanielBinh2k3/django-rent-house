@@ -95,6 +95,7 @@ class Listing(models.Model):
         HOUSE = 'House'
         CONDO = 'Condo'
         TOWNHOUSE = 'Townhouse'
+    # using foreign key
     realtor = models.EmailField(max_length=255)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
@@ -104,7 +105,7 @@ class Listing(models.Model):
     zipcode = models.CharField(max_length=20)
     description = models.TextField()
     price = models.IntegerField()
-    area = models.DecimalField(max_digits=3, decimal_places=1)
+    area = models.DecimalField(max_digits=10, decimal_places=2)
     bedrooms = models.IntegerField()
     bathrooms = models.IntegerField()
     home_type = models.CharField(
