@@ -13,11 +13,13 @@ from core.custom_permission import IsRealtor
 import logging
 import json
 from base.pagination import CustomPageNumberPagination
+from unidecode import unidecode
+import re
 logger = logging.getLogger(__name__)
 
 
 class ManageListingView(APIView):
-    permission_classes = (IsRealtor, permissions.IsAdminUser)
+    # permission_classes = (IsRealtor, permissions.IsAdminUser)
     serializer_class = PropertySerializer
 
     @swagger_auto_schema(
@@ -37,14 +39,6 @@ class ManageListingView(APIView):
     @swagger_auto_schema(
         operation_description="Create a new property listing",
         request_body=PropertySerializer,
-        responses={
-            201: openapi.Response(
-                description="Created",
-                schema=PropertySerializer()
-            ),
-            400: "Bad Request",
-            403: "Forbidden"
-        }
     )
     def post(self, request):
         try:
@@ -61,6 +55,7 @@ class ManageListingView(APIView):
 
     @swagger_auto_schema(
         operation_description="Update an existing property listing",
+        request_body=PropertySerializer,
         responses={
             200: openapi.Response(
                 description="Updated",
@@ -68,46 +63,87 @@ class ManageListingView(APIView):
             ),
             400: "Bad Request",
             403: "Forbidden",
-            404: "Not Found"
+            404: "Not Found",
+            500: "Internal Server Error"
         }
     )
     def put(self, request, pk):
         try:
             user = request.user
-            listing = get_object_or_404(
-                Listing.objects.filter(realtor=user), pk=pk)
-            serializer = PropertySerializer(
-                instance=listing, data=request.data, partial=True, context={'request': request})
+            listing = Listing.objects.get(id=pk)
+            # if str(listing) != str(user):
+            #     return Response(
+            #         {'error': 'User does not have permission to update this listing data'},
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
 
+            original_slug = listing.slug
+            serializer = PropertySerializer(
+                listing, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                instance = serializer.save()
+                clean_title = re.sub(
+                    r'[!@#$%^&*()_+={}\[\]\\|]', ' ', instance.title)
+                slug = re.sub(r'(?<!^)\s+', '-', clean_title.strip().lower())
+                new_slug = unidecode(
+                    f"{slug}-id{instance.id}").lower()
+                # Check if the title has changed
+                if new_slug != original_slug:
+                    # Generate new slug ba  sed on the updated title
+                    instance.slug = new_slug
+                    instance.save()
+
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_200_OK
+                )
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Listing.DoesNotExist:
+            return Response(
+                {'error': 'Listing does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         except Exception as e:
-            logger.exception(str(e))
-            return Response({'error': 'An error occurred while updating the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when updating property'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @swagger_auto_schema(
         operation_description="Delete an existing property listing",
         responses={
             204: "No Content",
-            403: "Forbidden",
-            404: "Not Found"
+            404: "Not Found",
+            500: "Internal Server Error"
         }
     )
     def delete(self, request, pk):
         try:
-            user = request.user
-            # Using that to get just only one object when every condition is match, in this case we can use 2 filter could be work well
-            listing = get_object_or_404(
-                Listing.objects.filter(realtor=user), pk=pk)
+            listing = Listing.objects.get(id=pk)
+            if str(listing) != str(request.user):
+                return Response(
+                    {'error': 'User does not have permission to update this listing data'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
             listing.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-            return Response({'message': 'Listing deleted successfully.'}, status=status.HTTP_200_OK)
+        except Http404:
+            return Response(
+                {'error': 'Listing does not exist'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         except Exception as e:
-            logger.exception(str(e))
-            return Response({'error': 'An error occurred while deleting the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when deleting property'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ListingDetailView(APIView):
@@ -129,6 +165,10 @@ class ListingDetailView(APIView):
         try:
             slug = request.query_params.get('slug')
             listing = Listing.objects.get(slug=slug, is_published=True)
+            # Increment the view count for this listing
+            listing.view_counts += 1
+            listing.save()
+
             serializer = PropertySerializer(listing)
 
             return Response(
@@ -184,90 +224,6 @@ class ListingPkDetailView(APIView):
             self.logger.exception(e)
             return Response(
                 {'error': 'Something went wrong when retrieving property'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @swagger_auto_schema(
-        operation_description="Update an existing property listing",
-        responses={
-            200: openapi.Response(
-                description="Updated",
-                schema=PropertySerializer()
-            ),
-            400: "Bad Request",
-            403: "Forbidden",
-            404: "Not Found",
-            500: "Internal Server Error"
-        }
-    )
-    def put(self, request, pk):
-        try:
-            user = request.user
-            listing = Listing.objects.get(id=pk)
-            if str(listing) != str(user):
-                return Response(
-                    {'error': 'User does not have permission to update this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-            original_title = listing.title  # Store the original title of the listing
-
-            serializer = PropertySerializer(
-                listing, data=request.data, partial=True, context={'request': request})
-            if serializer.is_valid():
-                instance = serializer.save()
-                # Check if the title has changed
-                if instance.title != original_title:
-                    # Generate new slug based on the updated title
-                    new_slug = '-'.join(instance.title.split()
-                                        ) + '-' + str(instance.id)
-                    instance.slug = new_slug
-                    instance.save()
-
-                return Response(
-                    serializer.data,
-                    status=status.HTTP_200_OK
-                )
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Listing.DoesNotExist:
-            return Response(
-                {'error': 'Listing does not exist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        except Exception as e:
-            self.logger.exception(e)
-            return Response(
-                {'error': 'Something went wrong when updating property'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    @swagger_auto_schema(
-        operation_description="Delete an existing property listing",
-        responses={
-            204: "No Content",
-            404: "Not Found",
-            500: "Internal Server Error"
-        }
-    )
-    def delete(self, request, pk):
-        try:
-            property = self.get_object(pk)
-            property.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        except Http404:
-            return Response(
-                {'error': 'Listing does not exist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        except Exception as e:
-            self.logger.exception(e)
-            return Response(
-                {'error': 'Something went wrong when deleting property'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -359,7 +315,6 @@ class SearchListingView(APIView):
                     Q(title__icontains=search_term) | Q(slug__icontains=search_term))
 
             # Serialize and return results
-            print(type(queryset))
             serializer = PropertySerializer(queryset, many=True)
             return Response(serializer.data)
 
@@ -591,7 +546,7 @@ class OrderListingRealtorView(OrderListingNormalView):
     },
     required=['id', 'image_type', 'image']
 ))
-def uploadImages(request):
+def updateUploadImages(request):
     try:
         data = request.data
 

@@ -9,6 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
+
 def generate_username(name):
 
     username = "".join(name.split(' ')).lower()
@@ -31,8 +32,7 @@ def register_social_user(provider, user_id, email, name):
 
             return {
                 'name': registered_user.name,
-                'email': registered_user.email,
-                'tokens': registered_user.tokens()}
+                'email': registered_user.email, }
 
         else:
             raise AuthenticationFailed(

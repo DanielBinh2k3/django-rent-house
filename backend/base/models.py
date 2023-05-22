@@ -95,6 +95,11 @@ class Listing(models.Model):
         HOUSE = 'House'
         CONDO = 'Condo'
         TOWNHOUSE = 'Townhouse'
+
+    class PropertyStatus(models.TextChoices):
+        APPROVED = 'Approved'
+        REJECT = 'Reject'
+        OTHER = 'Other'
     # using foreign key
     realtor = models.EmailField(max_length=255)
     title = models.CharField(max_length=255)
@@ -111,17 +116,21 @@ class Listing(models.Model):
     home_type = models.CharField(
         max_length=10, choices=HomeType.choices, default=HomeType.HOUSE)
     main_photo = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.png')
+        upload_to='listings/', default='listings/placeholder.jpg')
     photo1 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.png')
+        upload_to='listings/', default='listings/placeholder.jpg')
     photo2 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.png')
+        upload_to='listings/', default='listings/placeholder.jpg')
     photo3 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.png')
+        upload_to='listings/', default='listings/placeholder.jpg')
     photo4 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.png')
+        upload_to='listings/', default='listings/placeholder.jpg')
     is_published = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=now)
+    property_status = models.CharField(
+        max_length=10, choices=HomeType.choices, default=PropertyStatus.OTHER)
+    phone_contact = models.CharField(null=True, blank=True)
+    view_counts = models.IntegerField(default=0)
 
     def delete(self):
         self.main_photo.storage.delete(self.main_photo.name)

@@ -15,8 +15,6 @@ def custom_exception_handler(exc, context):
         'NotAuthenticated': _handle_authentication_error,
         'AuthenticationFailed': _handle_authentication_error,
     }
-    print(exc)
-    print(context)
     response = exception_handler(exc, context)
 
     if response is not None:
@@ -31,7 +29,6 @@ def custom_exception_handler(exc, context):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         logger.critical(response, exc_info=exc)
     exception_class = exc.__class__.__name__
-    print(exception_class)
     if exception_class in handlers:
         return handlers[exception_class](exc, context, response)
     return response

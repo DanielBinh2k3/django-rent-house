@@ -40,7 +40,7 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view()),
     path('auth/user/', include('base.urls.user_urls')),
     path('api/listing/', include('base.urls.listing_urls')),
-    path('social_auth/', include('base.social_auth.urls')),
+    path('social-auth/', include('base.social_auth.urls')),
     path('admin/', admin.site.urls),
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
             schema_view.without_ui(cache_timeout=0), name='schema-json'),

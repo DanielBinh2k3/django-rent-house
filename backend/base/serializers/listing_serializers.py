@@ -2,8 +2,10 @@ from rest_framework import serializers
 from base.models import Listing, Order
 from django.db import models
 from django.core.files.images import ImageFile
+from django.utils.dateparse import parse_datetime
 import requests
 from unidecode import unidecode
+import re
 
 
 class PropertySerializer(serializers.ModelSerializer):
@@ -26,12 +28,27 @@ class PropertySerializer(serializers.ModelSerializer):
         validated_data['realtor'] = user.email
 
         # Generate the slug based on the title and the next available ID
-        validated_data['slug'] = '-'.join(
-            unidecode(validated_data['title']).split())
+        title = validated_data.get('title')
+        validated_data['slug'] = unidecode(
+            f"{title}").lower()
 
-        property = Listing.objects.create(**validated_data)
-        # update slug after create
-        return property
+        # Create the new listing
+        listing = Listing.objects.create(**validated_data)
+
+        # Update the slug with the new ID
+        clean_title = re.sub(
+            r'[!@#$%^&*()_+={}\[\]\\|]', ' ', listing.title)
+        listing.slug = f"{clean_title}-id{listing.id}"
+        listing.save()
+
+        return listing
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['slug'] = instance.slug
+        ret['realtor'] = instance.realtor
+        ret['date_created'] = (instance.date_created).strftime('%d-%m-%Y')
+        return ret
 
 
 class OrderSerializer(serializers.ModelSerializer):
