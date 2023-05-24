@@ -26,11 +26,18 @@ class ManageListingView(APIView):
         operation_description="Get all listings associated with a realtor",
         responses={200: PropertySerializer(many=True)}
     )
-    def get(self, request):
+    def get(self, request, pk=None):
         try:
-            # add pagination, search for owner
-            listings = Listing.objects.filter(realtor=request.user).all()
-            serializer = PropertySerializer(listings, many=True)
+            print(pk)
+            if pk != None:
+                listings = Listing.objects.get(id=pk)
+                serializer = PropertySerializer(listings)
+            else:
+                # add pagination, search for owner
+                listings = Listing.objects.filter(realtor=request.user).all()
+                serializer = PropertySerializer(listings, many=True)
+            print(listings)
+
             return Response(serializer.data)
         except Exception as e:
             logger.exception(str(e))

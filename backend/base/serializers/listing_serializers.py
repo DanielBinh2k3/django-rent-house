@@ -48,6 +48,7 @@ class PropertySerializer(serializers.ModelSerializer):
         ret['slug'] = instance.slug
         ret['realtor'] = instance.realtor
         ret['date_created'] = (instance.date_created).strftime('%d-%m-%Y')
+        ret['view_counts'] = instance.view_counts
         return ret
 
 

@@ -115,6 +115,7 @@ class Listing(models.Model):
     bathrooms = models.IntegerField()
     home_type = models.CharField(
         max_length=10, choices=HomeType.choices, default=HomeType.HOUSE)
+    #1 trường lưu nhiều ảnh 
     main_photo = models.ImageField(
         upload_to='listings/', default='listings/placeholder.jpg')
     photo1 = models.ImageField(
