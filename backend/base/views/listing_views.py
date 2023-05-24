@@ -3,6 +3,7 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from base.models import Listing, Order
 from base.serializers.listing_serializers import PropertySerializer, OrderSerializer
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 class ManageListingView(APIView):
     # permission_classes = (IsRealtor, permissions.IsAdminUser)
     serializer_class = PropertySerializer
+    parser_class = [MultiPartParser, FormParser]
 
     @swagger_auto_schema(
         operation_description="Get all listings associated with a realtor",
@@ -78,11 +80,6 @@ class ManageListingView(APIView):
         try:
             user = request.user
             listing = Listing.objects.get(id=pk)
-            # if str(listing) != str(user):
-            #     return Response(
-            #         {'error': 'User does not have permission to update this listing data'},
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
 
             original_slug = listing.slug
             serializer = PropertySerializer(

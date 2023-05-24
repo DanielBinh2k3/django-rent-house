@@ -117,15 +117,8 @@ class Listing(models.Model):
         max_length=10, choices=HomeType.choices, default=HomeType.HOUSE)
     #1 trường lưu nhiều ảnh 
     main_photo = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.jpg')
-    photo1 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.jpg')
-    photo2 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.jpg')
-    photo3 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.jpg')
-    photo4 = models.ImageField(
-        upload_to='listings/', default='listings/placeholder.jpg')
+        upload_to='listings', default='/listings/placeholder.jpg')
+
     is_published = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=now)
     property_status = models.CharField(
@@ -135,15 +128,18 @@ class Listing(models.Model):
 
     def delete(self):
         self.main_photo.storage.delete(self.main_photo.name)
-        self.photo1.storage.delete(self.photo1.name)
-        self.photo2.storage.delete(self.photo2.name)
-        self.photo3.storage.delete(self.photo3.name)
-        self.photo4.storage.delete(self.photo4.name)
         super().delete()
 
     def __str__(self):
         return self.title
+class ListingsImage(models.Model):
+    listing = models.ForeignKey(
+        Listing, on_delete=models.CASCADE, related_name='images'
+    )
+    image = models.ImageField(upload_to="listings")
 
+    def __str__(self):
+        return "%s" % (self.listing.name)
 
 class Order(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.DO_NOTHING)

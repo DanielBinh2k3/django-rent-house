@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from base.models import Listing, Order
+from base.models import Listing, ListingsImage, Order
 from django.db import models
 from django.core.files.images import ImageFile
 from django.utils.dateparse import parse_datetime
@@ -8,20 +8,25 @@ from unidecode import unidecode
 import re
 
 
+class ListingsImageSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = ListingsImage
+        fields = "__all__"
+
+
 class PropertySerializer(serializers.ModelSerializer):
-    main_photo = serializers.SerializerMethodField()
+    images = ListingsImageSerializers(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        write_only=True
+    )
 
     class Meta:
         model = Listing
         fields = ['id', 'title', 'address', 'city', 'district', 'zipcode',
                   'description', 'price', 'area', 'bedrooms', 'bathrooms',
-                  'home_type', 'main_photo', 'photo1', 'photo2', 'photo3',
-                  'photo4', 'is_published']
-
-    def get_main_photo(self, obj):
-        if obj.main_photo:
-            return obj.main_photo.url
-        return None
+                  'home_type', 'main_photo', 'images',
+                  'is_published', "uploaded_images"]
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -31,10 +36,12 @@ class PropertySerializer(serializers.ModelSerializer):
         title = validated_data.get('title')
         validated_data['slug'] = unidecode(
             f"{title}").lower()
+        uploaded_images = validated_data.pop("uploaded_images")
 
         # Create the new listing
         listing = Listing.objects.create(**validated_data)
-
+        for image in uploaded_images:
+            ListingsImage.objects.create(listing=listing, image=image)
         # Update the slug with the new ID
         clean_title = re.sub(
             r'[!@#$%^&*()_+={}\[\]\\|]', ' ', listing.title)
@@ -42,6 +49,21 @@ class PropertySerializer(serializers.ModelSerializer):
         listing.save()
 
         return listing
+
+    def update(self, instance, validated_data):
+        uploaded_images = validated_data.pop("uploaded_images", [])
+
+        # Update the instance with the remaining validated data
+        instance = super().update(instance, validated_data)
+
+        # Delete existing images associated with the product
+        instance.images.all().delete()
+
+        # Create new images for the updated product
+        for image in uploaded_images:
+            ListingsImage.objects.create(listing=instance, image=image)
+
+        return instance
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
