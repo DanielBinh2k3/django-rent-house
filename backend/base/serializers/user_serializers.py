@@ -32,7 +32,8 @@ class UserSerializer(serializers.Serializer):
         else:
             return User.objects.create_user(**validated_data)
 
-class GetUserDetailsSerializer(serializers.ModelSerializer):
+
+class UserProfileSerializer(serializers.ModelSerializer):
     image_profile = serializers.SerializerMethodField()
 
     class Meta:
@@ -49,21 +50,19 @@ class GetUserDetailsSerializer(serializers.ModelSerializer):
         ret = super().to_representation(instance)
         ret['isRealtor'] = instance.is_realtor
         ret['isAdmin'] = instance.is_staff
-        ret['image_profile'] = self.get_image_profile(instance)
+        ret['image_profile'] = self.get_image_profile(
+            instance) or instance.image_url
         ret['token'] = str(RefreshToken.for_user(instance).access_token)
         return ret
+
 
 class LogInSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)
     password = serializers.CharField(max_length=255, min_length=8)
+
     class Meta:
         fields = ['email', 'password']
 
-class UploadProfileImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'image_profile')
-        read_only_fields = ('id',)
 
 class ResetPasswordEmailRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)
@@ -98,6 +97,7 @@ class SetNewPasswordSerializer(serializers.Serializer):
         except Exception as e:
             raise AuthenticationFailed('The reset link is invalid', 401)
 
+
 class EmailFormSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
@@ -106,5 +106,3 @@ class EmailFormSerializer(serializers.Serializer):
 
     class Meta:
         fields = ['name', 'email', 'subject', 'message']
-
-

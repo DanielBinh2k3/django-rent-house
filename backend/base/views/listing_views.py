@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class ManageListingView(APIView):
-    # permission_classes = (IsRealtor, permissions.IsAdminUser)
+    permission_classes = (IsRealtor, permissions.IsAdminUser)
     serializer_class = PropertySerializer
     parser_class = [MultiPartParser, FormParser]
 
@@ -30,15 +30,14 @@ class ManageListingView(APIView):
     )
     def get(self, request, pk=None):
         try:
-            print(pk)
             if pk != None:
-                listings = Listing.objects.get(id=pk)
-                serializer = PropertySerializer(listings)
+                listing = Listing.objects.get(id=pk)
+                serializer = PropertySerializer(listing)
             else:
                 # add pagination, search for owner
+                # Search trong này luôn
                 listings = Listing.objects.filter(realtor=request.user).all()
                 serializer = PropertySerializer(listings, many=True)
-            print(listings)
 
             return Response(serializer.data)
         except Exception as e:
@@ -86,6 +85,7 @@ class ManageListingView(APIView):
                 listing, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 instance = serializer.save()
+                # sửa và cho vào trong serializer
                 clean_title = re.sub(
                     r'[!@#$%^&*()_+={}\[\]\\|]', ' ', instance.title)
                 slug = re.sub(r'(?<!^)\s+', '-', clean_title.strip().lower())
@@ -128,7 +128,7 @@ class ManageListingView(APIView):
     def delete(self, request, pk):
         try:
             listing = Listing.objects.get(id=pk)
-            if str(listing) != str(request.user):
+            if str(listing) != str(request.user):  # sửa lại không dùng str
                 return Response(
                     {'error': 'User does not have permission to update this listing data'},
                     status=status.HTTP_403_FORBIDDEN

@@ -20,19 +20,21 @@ def generate_username(name):
         return generate_username(random_username)
 
 
-def register_social_user(provider, user_id, email, name):
+def register_social_user(provider, user_id, email, name, image_url=None):
     filtered_user_by_email = User.objects.filter(email=email)
-
     if filtered_user_by_email.exists():
 
         if provider == filtered_user_by_email[0].auth_provider:
-
             registered_user = authenticate(
                 email=email, password=os.environ.get('SOCIAL_SECRET'))
-
+            if not image_url:
+                registered_user.image_url = image_url
+                registered_user.save()
             return {
                 'name': registered_user.name,
-                'email': registered_user.email, }
+                'email': registered_user.email,
+                'tokens': str(RefreshToken.for_user(registered_user).access_token),
+            }
 
         else:
             raise AuthenticationFailed(
@@ -45,6 +47,7 @@ def register_social_user(provider, user_id, email, name):
         user = User.objects.create_user(**user)
         user.verified = True
         user.auth_provider = provider
+        user.image_url = image_url
         user.save()
 
         new_user = authenticate(

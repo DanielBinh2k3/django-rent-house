@@ -59,6 +59,7 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     verified = models.BooleanField(default=False)
     image_profile = models.ImageField(
         upload_to='profile_images', blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
     is_password_reset_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -126,9 +127,10 @@ class Listing(models.Model):
     phone_contact = models.CharField(null=True, blank=True)
     view_counts = models.IntegerField(default=0)
 
-    def delete(self):
-        self.main_photo.storage.delete(self.main_photo.name)
-        super().delete()
+    def delete(self, *args, **kwargs):
+        if self.main_photo:
+            self.main_photo.storage.delete(self.main_photo.name)
+        super().delete(*args, **kwargs)
 
     def __str__(self):
         return self.title
@@ -137,7 +139,9 @@ class ListingsImage(models.Model):
         Listing, on_delete=models.CASCADE, related_name='images'
     )
     image = models.ImageField(upload_to="listings")
-
+    def delete(self, *args, **kwargs):
+        self.image.delete()
+        super().delete(*args, **kwargs)
     def __str__(self):
         return "%s" % (self.listing.name)
 

@@ -2,10 +2,13 @@ from rest_framework import serializers
 from . import google, facebook, twitterhelper
 from .register import register_social_user
 import os
+import copy
 from rest_framework.exceptions import AuthenticationFailed
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
 class FacebookSocialAuthSerializer(serializers.Serializer):
     """Handles serialization of facebook related data"""
     auth_token = serializers.CharField()
@@ -17,12 +20,11 @@ class FacebookSocialAuthSerializer(serializers.Serializer):
             user_id = user_data['id']
             email = user_data['email']
             name = user_data['name']
+            image_url = user_data['picture']['data']['url']
             provider = 'facebook'
+
             return register_social_user(
-                provider=provider,
-                user_id=user_id,
-                email=email,
-                name=name
+                provider=provider, user_id=user_id, email=email, name=name, image_url=image_url
             )
         except Exception as identifier:
 
@@ -44,16 +46,17 @@ class GoogleSocialAuthSerializer(serializers.Serializer):
             )
 
         if user_data['aud'] != os.environ.get('GOOGLE_CLIENT_ID'):
-            
+
             raise AuthenticationFailed('oops, who are you?')
 
         user_id = user_data['sub']
         email = user_data['email']
         name = user_data['name']
+        image_url = user_data['picture']
         provider = 'google'
 
         return register_social_user(
-            provider=provider, user_id=user_id, email=email, name=name)
+            provider=provider, user_id=user_id, email=email, name=name, image_url=image_url)
 
 
 class TwitterAuthSerializer(serializers.Serializer):

@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from base.serializers.user_serializers import UserSerializer, SetNewPasswordSerializer, \
     ResetPasswordEmailRequestSerializer, EmailFormSerializer,\
-    LogInSerializer, GetUserDetailsSerializer, UploadProfileImageSerializer
+    LogInSerializer, UserProfileSerializer
 from django.contrib.auth import get_user_model
 import logging
 User = get_user_model()
@@ -67,12 +67,16 @@ class RegisterView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RetrieveUserView(APIView):
+class UserProfileView(generics.GenericAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
     @swagger_auto_schema(responses={200: UserSerializer()})
     def get(self, request, pk, format=None):
         try:
             user = User.objects.get(pk=pk)
-            serializer = GetUserDetailsSerializer(user)
+            serializer = self.get_serializer(user, data=request.data)
 
             logger.info(f'User details retrieved: {serializer.data}')
 
@@ -90,6 +94,22 @@ class RetrieveUserView(APIView):
             logger.error(f'Error retrieving user details: {str(e)}')
             return Response(
                 {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def put(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+            serializer = self.get_serializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                logger.info(f'Profile image uploaded for user: {user.email}')
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f'Error uploading profile image: {str(e)}')
+            return Response(
+                {'error': 'Something went wrong when retrieving user details'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -129,7 +149,7 @@ class LogInUserView(APIView):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                serializer = GetUserDetailsSerializer(user)
+                serializer = UserProfileSerializer(user)
                 logger.info(f'User logged in: {user.email}')
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -138,28 +158,6 @@ class LogInUserView(APIView):
         except Exception as e:
             logger.error(f'Error logging in user: {str(e)}')
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class UploadProfileImageView(generics.UpdateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UploadProfileImageSerializer
-    parser_classes = (MultiPartParser, FormParser)
-
-    def put(self, request, *args, **kwargs):
-        try:
-            user = self.get_object()
-            serializer = self.get_serializer(user, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                logger.info(f'Profile image uploaded for user: {user.email}')
-                return Response(serializer.data)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.error(f'Error uploading profile image: {str(e)}')
-            return Response(
-                {'error': 'Something went wrong when retrieving user details'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
