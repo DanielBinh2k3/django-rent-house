@@ -1,35 +1,78 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 import FormContainer from "../common/FormContainer";
-
-// const FormContainer = styled.form`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: flex-start;
-// `;
-
-// const StepIndicator = styled.div`
-//   display: flex;
-//   justify-content: center;
-//   margin-bottom: 20px;
-// `;
-
-
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios'
+import { createListing } from "../../apiRequest/actions/listingActions";
+import { useNavigate } from "react-router-dom";
+import Loader from "../common/Loader";
+import Message1 from "../common/Message1";
 const AddPropertyScreen = () => {
   const [step, setStep] = useState(1);
+  const [name, setName] = useState("");
+  const [contact, setContact] = useState("")
   const [home_type, setHomeType] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
   const [zipcode, setZipcode] = useState("");
   const [area, setArea] = useState("");
   const [price, setPrice] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [main_photo, setMainPhoto] = useState("");
+  const [main_photo, setMainPhoto] = useState(null);
+  const [uploaded_images, setUploadedImages] = useState([]);
   const [is_published, setIsPublished] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
+  const [countdown, setCountdown] = useState(3); // set initial countdown to 3 seconds
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
+  const createdListing = useSelector((state) => state.listingCreate);
+  const { loading, error, success } = createdListing;
+  useEffect(() => {
+    let interval = null;
+    if (success) {
+      interval = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [success]);
+
+  useEffect(() => {
+    if (countdown === 0) {
+      navigate('/');
+    }
+  }, [countdown, navigate]);
+
+const submitHandler = async (e) => {
+  e.preventDefault();
+  setUploading(true);
+  console.log(main_photo)
+  console.log(uploaded_images)
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("contact", contact);
+  formData.append("home_type", home_type);
+  formData.append("address", address);
+  formData.append("city", city);
+  formData.append("district", district);
+  formData.append("zipcode", zipcode);
+  formData.append("area", area);
+  formData.append("price", price);
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("main_photo", main_photo);
+  uploaded_images.forEach((file, index) => {
+      formData.append(`uploaded_images[${index}]`, file);
+    });
+  formData.append("is_published", is_published);
+  formData.append("bedrooms", bedrooms);
+  formData.append("bathrooms", bathrooms);
+  dispatch(createListing(formData));
+};
 
   const handleNextStep = (event) => {
     event.preventDefault();
@@ -41,59 +84,25 @@ const AddPropertyScreen = () => {
     setStep(step - 1);
   };
 
-  const uploadFileHandler = async (event) => {
-    const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append("image", file);
-    setUploading(true);
-
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      setMainPhoto(data.image);
-      setUploading(false);
-    } catch (error) {
-      console.error(error);
-      setUploading(false);
-    }
+  const handleFileChange = (e) => {
+    console.log(e.target.files)
+    setMainPhoto(e.target.files[0]);
+    console.log(main_photo)
   };
 
-  const submitHandler = async (event) => {
-    event.preventDefault();
-
-    try {
-      const response = await fetch("/api/properties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          home_type,
-          address,
-          city,
-          zipcode,
-          area,
-          price,
-          bedrooms,
-          bathrooms,
-          title,
-          description,
-          main_photo,
-          is_published,
-        }),
-      });
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const handleMultiFileChange = (event) => {
+  const files = Array.from(event.target.files);
+  setUploadedImages(files);
+  }
 
   return (
     <>
+      {loading && <Loader/>}
+      {error && <Message1 variant="danger">{error}</Message1>}
+      {success && (
+      <div>
+      <p>Listing created successfully! Redirecting to homepage in {countdown} seconds...</p>
+      </div>)}
         {step === 1 && (
           <FormContainer onSubmit={handleNextStep}>
             <Form className="card bg-light" style={{height: '500px'}}>
@@ -110,11 +119,11 @@ const AddPropertyScreen = () => {
               </div>
             <label>
               Name:
-              <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
             </label>
             <label>
               Contact:
-              <input type="text" value={city} onChange={(e) => setCity(e.target.value)} />
+              <input type="text" value={contact} onChange={(e) => setContact(e.target.value)} />
             </label>
             <div className='row form-buttons' style={{height: "5%"}}>
               <div className='col-md-6'>
@@ -152,6 +161,10 @@ const AddPropertyScreen = () => {
               <input type="text" value={city} onChange={(e) => setCity(e.target.value)} />
             </label>
             <label>
+              District:
+              <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} />
+            </label>
+            <label>
               Zipcode:
               <input type="text" value={zipcode} onChange={(e) => setZipcode(e.target.value)} />
             </label>
@@ -159,9 +172,9 @@ const AddPropertyScreen = () => {
               Home Type &nbsp; &nbsp;&nbsp;
               <select value={home_type} onChange={(e) => setHomeType(e.target.value)}>
                 <option value="">Select a home type</option>
-                <option value="house">House</option>
-                <option value="condo">Condo</option>
-                <option value="townhouse">Townhouse</option>
+                <option value="House">House</option>
+                <option value="Condo">Condo</option>
+                <option value="Townhouse">Townhouse</option>
               </select>
             </label>
             <div className='row' style={{height: "5%"}}>
@@ -280,13 +293,14 @@ const AddPropertyScreen = () => {
                   <div className="step active">Step 5</div>
                 </div>
               </div>
-          <label>
+          <label htmlFor="image" >
             Main Photo:
-            <input type="file" onChange={uploadFileHandler} />
-            {uploading && <div>Uploading...</div>}
+            <input type="file" onChange={handleFileChange}/>
+           <input type="file" multiple onChange={handleMultiFileChange} />
+            {uploading && <div>Upload done</div>}
           </label>
           {main_photo && <img src={main_photo} alt="Main" />}
-          
+          {uploaded_images && <img src={uploaded_images} alt="Uploaded_images" />}
           <div className="form-check d-flex justify-content-start">
               <input className="form-check-input" type="checkbox" checked={is_published} onChange={() => setIsPublished(!is_published)} />
               <label className="form-check-label" for="form1Example3">Public</label>
@@ -298,7 +312,7 @@ const AddPropertyScreen = () => {
               </Button> 
               </div>
               <div className='col-md-6'>
-              <Button className='btn btn-lg w-100 btn-success' type="submit">Submit</Button>
+              <Button className='btn btn-lg w-100 btn-success' onClick={submitHandler}>Submit</Button>
               </div>
           </div>       
 

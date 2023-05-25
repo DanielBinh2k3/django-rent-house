@@ -1,20 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, Col, Row } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux';
+import { getListingDetailsPk } from '../../apiRequest/actions/listingActions';
 
-const EditPropertyScreen = ({ showModal, handleClose }) => {
+const EditPropertyScreen = ({pk, showModal, handleClose }) => {
+  const dispatch = useDispatch()
+  const listingDetail = useSelector((state) => state.listingDetails)
+  const {error, loading, listing} = listingDetail
   const [propertyData, setPropertyData] = useState({
-    title: '',
-    address: '',
-    city: '',
-    district: '',
-    zipcode: '',
-    description: '',
-    price: '',
-    area: '',
-    bedrooms: '',
-    bathrooms: '',
+    title: listing.title,
+    address: listing.address,
+    city: listing.city,
+    district: listing.district,
+    zipcode: listing.zipcode,
+    description: listing.description,
+    price: listing.price,
+    area: listing.area,
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
   });
-
+  useEffect(() => {
+    dispatch(getListingDetailsPk(pk));
+  }, [dispatch, pk]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setPropertyData((prevData) => ({
@@ -30,13 +37,15 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
   };
 
   return (
-    <Modal size="lg" show={showModal} onHide={handleClose} centered scrollable >
+    
+    <Modal size="lg" show={showModal} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Edit Property</Modal.Title>
       </Modal.Header>
       <Modal.Body >
-        <Form onSubmit={handleSubmit} style={{marginBottom: '3rem'}}>
+        <Form onSubmit={handleSubmit} style={{marginBottom: '3rem', width: '100%'}}>
           <Form.Group controlId="title">
+            <Form.Label>Title</Form.Label>
             <Form.Control
               type="text"
               name="title"
@@ -47,6 +56,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Form.Group>
 
           <Form.Group controlId="address">
+            <Form.Label>Address</Form.Label>
             <Form.Control
               type="text"
               name="address"
@@ -58,6 +68,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
         <Row>
           <Col>
             <Form.Group controlId="city">
+              <Form.Label>City</Form.Label>
               <Form.Control
                 type="text"
                 name="city"
@@ -69,6 +80,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Col>
           <Col>
             <Form.Group controlId="district">
+              <Form.Label>District</Form.Label>
               <Form.Control
                 type="text"
                 name="district"
@@ -80,6 +92,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Col>
           <Col>
             <Form.Group controlId="zipcode">
+              <Form.Label>Zipcode</Form.Label>
               <Form.Control
                 type="text"
                 name="zipcode"
@@ -94,6 +107,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
         <Row>
           <Col>
             <Form.Group controlId="price">
+              <Form.Label>Price</Form.Label>
               <Form.Control
                 type="text"
                 name="price"
@@ -105,6 +119,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Col>
           <Col>
             <Form.Group controlId="area">
+               <Form.Label>Area</Form.Label>
               <Form.Control
                 type="text"
                 name="area"
@@ -116,6 +131,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Col>
           <Col>
             <Form.Group controlId="bedrooms">
+               <Form.Label>Bedrooms</Form.Label>
               <Form.Control
                 type="text"
                 name="bedrooms"
@@ -127,6 +143,7 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
           </Col>
           <Col>
             <Form.Group controlId="bathrooms">
+              <Form.Label>Bathrooms</Form.Label>
               <Form.Control
                 type="text"
                 name="bathrooms"
@@ -158,9 +175,8 @@ const EditPropertyScreen = ({ showModal, handleClose }) => {
               Save Changes
             </Button>
           </Modal.Footer>
-        
-      
     </Modal>
+
   );
 };
 
