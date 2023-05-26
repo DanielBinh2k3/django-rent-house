@@ -134,6 +134,7 @@ class Listing(models.Model):
 
     def __str__(self):
         return self.title
+# UPload lên chỗ khác
 class ListingsImage(models.Model):
     listing = models.ForeignKey(
         Listing, on_delete=models.CASCADE, related_name='images'
@@ -143,7 +144,7 @@ class ListingsImage(models.Model):
         self.image.delete()
         super().delete(*args, **kwargs)
     def __str__(self):
-        return "%s" % (self.listing.name)
+        return "%s" % (self.listing)
 
 class Order(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.DO_NOTHING)

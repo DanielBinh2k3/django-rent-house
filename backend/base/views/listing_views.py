@@ -1,4 +1,5 @@
 from rest_framework.decorators import api_view
+from django.db import connection
 from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ManageListingView(APIView):
-    permission_classes = (IsRealtor, permissions.IsAdminUser)
+    permission_classes = [IsRealtor | permissions.IsAdminUser]
     serializer_class = PropertySerializer
     parser_class = [MultiPartParser, FormParser]
 
@@ -77,25 +78,13 @@ class ManageListingView(APIView):
     )
     def put(self, request, pk):
         try:
-            user = request.user
             listing = Listing.objects.get(id=pk)
-
+            self.check_object_permissions(request, listing)
             original_slug = listing.slug
             serializer = PropertySerializer(
                 listing, data=request.data, partial=True, context={'request': request})
             if serializer.is_valid():
                 instance = serializer.save()
-                # sửa và cho vào trong serializer
-                clean_title = re.sub(
-                    r'[!@#$%^&*()_+={}\[\]\\|]', ' ', instance.title)
-                slug = re.sub(r'(?<!^)\s+', '-', clean_title.strip().lower())
-                new_slug = unidecode(
-                    f"{slug}-id{instance.id}").lower()
-                # Check if the title has changed
-                if new_slug != original_slug:
-                    # Generate new slug ba  sed on the updated title
-                    instance.slug = new_slug
-                    instance.save()
 
                 return Response(
                     serializer.data,
@@ -128,26 +117,18 @@ class ManageListingView(APIView):
     def delete(self, request, pk):
         try:
             listing = Listing.objects.get(id=pk)
-            if str(listing) != str(request.user):  # sửa lại không dùng str
-                return Response(
-                    {'error': 'User does not have permission to update this listing data'},
-                    status=status.HTTP_403_FORBIDDEN
+            self.check_object_permissions(request, listing)
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM base_listing WHERE id = %s",
+                    [pk]
                 )
-            listing.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        except Http404:
-            return Response(
-                {'error': 'Listing does not exist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+                affected_rows = cursor.rowcount
+            return affected_rows
 
         except Exception as e:
             logger.exception(e)
-            return Response(
-                {'error': 'Something went wrong when deleting property'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({'error': 'Something went wrong when deleting the property.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ListingDetailView(APIView):
