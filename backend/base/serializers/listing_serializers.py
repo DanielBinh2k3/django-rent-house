@@ -9,20 +9,20 @@ import re
 from slugify import slugify
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django.core.exceptions import ValidationError
+
+# class DistrictSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = District
+#         fields = '__all__'
 
 
-class DistrictSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = District
-        fields = '__all__'
+# class CitySerializer(serializers.ModelSerializer):
+#     districts = DistrictSerializer(many=True, read_only=True)
 
-
-class CitySerializer(serializers.ModelSerializer):
-    districts = DistrictSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = City
-        fields = '__all__'
+#     class Meta:
+#         model = City
+#         fields = '__all__'
 
 
 class ListingsImageSerializers(serializers.ModelSerializer):
@@ -34,30 +34,10 @@ class ListingsImageSerializers(serializers.ModelSerializer):
 class PropertySerializer(serializers.ModelSerializer):
     images = ListingsImageSerializers(many=True, read_only=True)
     uploaded_images = serializers.ListField(
-        child=serializers.ImageField(allow_empty_file=False, use_url=False),
+        child=serializers.ImageField(allow_empty_file=False, use_url=True),
         write_only=True
     )
-    city = CitySerializer()
-    district = serializers.PrimaryKeyRelatedField(
-        queryset=District.objects.all())
 
-    @swagger_auto_schema(
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['title', 'address', 'city', 'district'],
-            properties={
-                'title': openapi.Schema(type=openapi.TYPE_STRING),
-                'address': openapi.Schema(type=openapi.TYPE_STRING),
-                'city': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'district': openapi.Schema(type=openapi.TYPE_INTEGER),
-                # Add more properties as needed...
-                'uploaded_images': openapi.Schema(
-                    type=openapi.TYPE_ARRAY,
-                    items=openapi.Schema(type=openapi.TYPE_FILE),
-                ),
-            },
-        ),
-    )
     class Meta:
         model = Listing
         fields = ['id', 'title', 'address', 'city', 'district', 'zipcode',
@@ -72,21 +52,14 @@ class PropertySerializer(serializers.ModelSerializer):
         title = validated_data.get('title')
         validated_data['slug'] = unidecode(title).lower()
         uploaded_images = validated_data.pop("uploaded_images")
-
-        city_data = validated_data.pop('city', None)
-        district_data = validated_data.pop('district', None)
-
+        district_id = validated_data.pop("district").id
+        city_id = validated_data.get("city").id
+        try:
+            district = District.objects.get(pk=district_id, city_id=city_id)
+            validated_data['district'] = district
+        except District.DoesNotExist:
+            raise ValidationError("Invalid district ID for the selected city")
         listing = Listing.objects.create(**validated_data)
-
-        if city_data:
-            city = City.objects.get(pk=city_data['id'])
-            listing.city = city
-
-        if district_data:
-            district = District.objects.get(pk=district_data)
-            listing.district = district
-
-        listing.save()
 
         for image in uploaded_images:
             ListingsImage.objects.create(listing=listing, image=image)
@@ -97,40 +70,39 @@ class PropertySerializer(serializers.ModelSerializer):
 
         return listing
 
-    def update(self, instance, validated_data):
+    def update(self, listing, validated_data):
         uploaded_images = validated_data.pop("uploaded_images", [])
-        original_title = instance.title
+        original_title = listing.title
 
         city_data = validated_data.pop('city', None)
         district_data = validated_data.pop('district', None)
 
-        instance = super().update(instance, validated_data)
+        listing = super().update(listing, validated_data)
 
-        if instance.title != original_title:
-            clean_title = slugify(instance.title)
-            instance.slug = f"{clean_title}-id{instance.id}"
+        if listing.title != original_title:
+            clean_title = slugify(listing.title)
+            listing.slug = f"{clean_title}-id{listing.id}"
 
         if city_data:
             city = City.objects.get(pk=city_data['id'])
-            instance.city = city
+            listing.city = city
 
         if district_data:
             district = District.objects.get(pk=district_data)
-            instance.district = district
+            listing.district = district
 
-        instance.save()
-
-        instance.images.all().delete()
+        listing.images.all().delete()
 
         for image in uploaded_images:
-            ListingsImage.objects.create(listing=instance, image=image)
+            ListingsImage.objects.create(listing=listing, image=image)
+        listing.save()
 
-        return instance
+        return listing
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['city'] = CitySerializer(instance.city).data
-        ret['district'] = DistrictSerializer(instance.district).data
+        ret['city'] = (instance.city).name
+        ret['district'] = (instance.district).name
         ret['slug'] = instance.slug
         ret['realtor'] = instance.realtor
         ret['date_created'] = instance.date_created.strftime('%d-%m-%Y')

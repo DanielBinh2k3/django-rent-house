@@ -147,7 +147,7 @@ class ListingsImage(models.Model):
         return "%s" % (self.listing)
 
 class Order(models.Model):
-    listing = models.ForeignKey(Listing, on_delete=models.DO_NOTHING)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
     renter_name = models.CharField(max_length=100)
     renter_email = models.EmailField(max_length=255)
     renter_phone = models.CharField(max_length=20)

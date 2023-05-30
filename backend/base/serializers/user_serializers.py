@@ -64,6 +64,11 @@ class LogInSerializer(serializers.Serializer):
         fields = ['email', 'password']
 
 
+class PasswordResetSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+
 class ResetPasswordEmailRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(min_length=2)
 

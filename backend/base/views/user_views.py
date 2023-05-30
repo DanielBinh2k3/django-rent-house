@@ -1,5 +1,7 @@
+from rest_framework import generics, status
 from django.utils.encoding import DjangoUnicodeDecodeError
 import jwt
+from django.core.files import File
 from rest_framework.permissions import IsAuthenticated
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -20,9 +22,12 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from base.serializers.user_serializers import UserSerializer, SetNewPasswordSerializer, \
-    ResetPasswordEmailRequestSerializer, EmailFormSerializer,\
+    ResetPasswordEmailRequestSerializer, EmailFormSerializer, PasswordResetSerializer,\
     LogInSerializer, UserProfileSerializer
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 import logging
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -71,6 +76,7 @@ class UserProfileView(generics.GenericAPIView):
     queryset = User.objects.all()
     serializer_class = UserProfileSerializer
     parser_classes = (MultiPartParser, FormParser)
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(responses={200: UserSerializer()})
     def get(self, request, pk, format=None):
@@ -97,24 +103,70 @@ class UserProfileView(generics.GenericAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def put(self, request, *args, **kwargs):
+    @transaction.atomic
+    def put(self, request, pk, *args, **kwargs):
         try:
-            user = self.get_object()
-            serializer = self.get_serializer(user, data=request.data)
+            user = request.user
+            user_model = User.objects.get(id=pk)
+            # Get the uploaded image file from the request data
+            image_profile_file = request.data.get('image_profile')
+
+            # If an image file was uploaded, save it to the User model
+            if image_profile_file:
+                user.image_profile.save(
+                    image_profile_file.name, File(image_profile_file))
+
+            # Create a new dictionary with updated values
+            new_data = dict(request.data)
+            new_data.setdefault('name', user.name)
+            new_data.setdefault('email', user.email)
+            new_data.pop('image_profile', None)
+
+            serializer = self.get_serializer(user, data=new_data)
+
             if serializer.is_valid():
+                user_model.save()
                 serializer.save()
-                logger.info(f'Profile image uploaded for user: {user.email}')
+
+                logger.info(f'Profile updated for user: {user.email}')
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.error(f'Error uploading profile image: {str(e)}')
+        except ValidationError as e:
             return Response(
-                {'error': 'Something went wrong when retrieving user details'},
+                {'error': f'{e}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f'Error updating user profile: {str(e)}')
+            return Response(
+                {'error': 'Something went wrong when updating user profile'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
-class VerifyEmail(generics.GenericAPIView):
+class PasswordResetView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = PasswordResetSerializer
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        old_password = serializer.validated_data['old_password']
+        new_password = serializer.validated_data['new_password']
+
+        if not user.check_password(old_password):
+            return Response({'error': 'Invalid old password.'}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({'success': 'Password reset successful.'}, status=200)
+
+
+class VerifyEmail(APIView):
+
     def get(self, request):
         try:
             token = request.GET.get('token')

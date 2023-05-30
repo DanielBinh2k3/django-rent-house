@@ -2,9 +2,10 @@ from django.db import transaction
 from rest_framework.decorators import api_view
 from django.db import connection
 from django.db.models import Q
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
+from rest_framework import status, permissions, parsers, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.shortcuts import get_object_or_404
 from base.models import Listing, Order
@@ -25,7 +26,8 @@ logger = logging.getLogger(__name__)
 class ManageListingView(APIView):
     permission_classes = [IsRealtor | permissions.IsAdminUser]
     serializer_class = PropertySerializer
-    parser_class = [MultiPartParser, FormParser]
+    parser_class = (parsers.FormParser,
+                    parsers.MultiPartParser, parsers.FileUploadParser)
 
     @swagger_auto_schema(
         operation_description="Get all listings associated with a realtor",
@@ -35,6 +37,7 @@ class ManageListingView(APIView):
     def get(self, request, pk=None):
         try:
             with transaction.atomic():
+
                 if pk != None:
                     listing = Listing.objects.get(id=pk)
                     serializer = PropertySerializer(listing)
@@ -54,8 +57,10 @@ class ManageListingView(APIView):
     )
     @transaction.atomic
     def post(self, request):
+        serializer = self.serializer_class(data=request.data)
         try:
             with transaction.atomic():
+                print(request.data)
                 serializer = PropertySerializer(
                     data=request.data, context={'request': request})
                 if serializer.is_valid():
@@ -63,9 +68,11 @@ class ManageListingView(APIView):
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.exception(str(e))
-            return Response({'error': 'An error occurred while creating the listing.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': f'An error occurred while creating the listing. {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(
         operation_description="Update an existing property listing",
@@ -87,12 +94,13 @@ class ManageListingView(APIView):
             with transaction.atomic():
                 listing = Listing.objects.get(id=pk)
                 self.check_object_permissions(request, listing)
-                original_slug = listing.slug
+                print(request.data)
                 serializer = PropertySerializer(
-                    listing, data=request.data, partial=True, context={'request': request})
-                if serializer.is_valid():
-                    instance = serializer.save()
+                    listing, data=request.data, partial=True)
 
+                if serializer.is_valid():
+                    serializer.save()
+                    print(serializer.data)
                     return Response(
                         serializer.data,
                         status=status.HTTP_200_OK
@@ -123,15 +131,17 @@ class ManageListingView(APIView):
     def delete(self, request, pk):
         try:
             with transaction.atomic():
-                listing = Listing.objects.get(id=pk)
-                self.check_object_permissions(request, listing)
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        "DELETE FROM base_listing WHERE id = %s",
-                        [pk]
-                    )
-                    affected_rows = cursor.rowcount
-                return affected_rows
+                listing = Listing.objects.filter(
+                    id=pk, realtor=request.user).delete()
+                # self.check_object_permissions(request, listing)
+                # with connection.cursor() as cursor:
+                #     cursor.execute(
+                #         "DELETE FROM base_listing WHERE id = %s",
+                #         [pk]
+                #     )
+                #     affected_rows = cursor.rowcount
+                print(listing)
+                return Response({'success': 'Delete Successfully'}, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.exception(e)
@@ -153,20 +163,22 @@ class ListingDetailView(APIView):
             )
         ]
     )
+    @transaction.atomic
     def get(self, request):
         try:
-            slug = request.query_params.get('slug')
-            listing = Listing.objects.get(slug=slug, is_published=True)
-            # Increment the view count for this listing
-            listing.view_counts += 1
-            listing.save()
+            with transaction.atomic():
+                slug = request.query_params.get('slug')
+                listing = Listing.objects.get(slug=slug, is_published=True)
+                # Increment the view count for this listing
+                listing.view_counts += 1
+                listing.save()
 
-            serializer = PropertySerializer(listing)
+                serializer = PropertySerializer(listing)
 
-            return Response(
-                {'listing': serializer.data},  # serialize the data here
-                status=status.HTTP_200_OK
-            )
+                return Response(
+                    {'listing': serializer.data},  # serialize the data here
+                    status=status.HTTP_200_OK
+                )
 
         except Listing.DoesNotExist:
             logger.error(f'Listing with slug "{slug}" not found.')
@@ -410,11 +422,11 @@ class OrderListingNormalView(APIView):
     def delete(self, request, pk):
         try:
             with transaction.atomic():
-                order = Order.objects.get(pk=pk, listing__realtor=request.user)
-                order.delete()
+                deleted_count = Order.objects.filter(
+                    Q(pk=pk) & Q(realtor=request.user)).delete()
+                if deleted_count == 0:
+                    return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
             return Response({'success': "You deleted the order successfully"}, status=status.HTTP_204_NO_CONTENT)
-        except Order.DoesNotExist:
-            return Response({"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"An error occurred while deleting an order: {e}")
             return Response({"detail": "An error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
