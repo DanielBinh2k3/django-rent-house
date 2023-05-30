@@ -26,7 +26,11 @@ import { USER_LOGIN_FAIL,
       USER_UPDATE_REQUEST,
       USER_UPDATE_SUCCESS,
       USER_UPDATE_FAIL,
-      USER_UPDATE_RESET
+      USER_UPDATE_RESET,
+      USER_RESET_PASSWORD_REQUEST,
+      USER_RESET_PASSWORD_SUCCESS,
+      USER_RESET_PASSWORD_FAIL,
+      USER_RESET_PASSWORD_RESET
     } from "../constants/userConstants"
 
 
@@ -122,6 +126,20 @@ export const userUpdateReducer = (state = {user: {}}, action) =>{
         case USER_UPDATE_FAIL:
             return {loading: false, error: action.payload}
         case USER_UPDATE_RESET:
+            return {user: {}}
+        default: return state
+    }
+}
+
+export const userResetPasswordReducer = (state = {user: {}}, action) =>{
+    switch(action.type){
+        case USER_RESET_PASSWORD_REQUEST:
+            return {loading: true}
+        case USER_RESET_PASSWORD_SUCCESS:
+            return {loading: false, success:true}
+        case USER_RESET_PASSWORD_FAIL:
+            return {loading: false, error: action.payload}
+        case USER_RESET_PASSWORD_RESET:
             return {user: {}}
         default: return state
     }

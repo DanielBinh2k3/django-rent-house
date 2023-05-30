@@ -9,6 +9,7 @@ const Header = () => {
   const [navList, setNavList] = useState(false);
   const [profileList, setProfileList] = useState(false);
   const [profileInfoList, setProfileInfoList] = useState(false);
+  const [myList, setMyList] = useState(false)
   const dispatch = useDispatch();
   const userLogin = useSelector((state) => state.userLogin);
   const { error, loading, userInfo } = userLogin;
@@ -29,9 +30,11 @@ const Header = () => {
         dropdownRef.current && 
         !dropdownRef.current.contains(event.target) &&
         !event.target.classList.contains("dropdown-profile-info") &&
-        !event.target.classList.contains("dropdown-list")
+        !event.target.classList.contains("dropdown-list") &&
+        !event.target.classList.contains("nav-item")
       ) {
         setProfileList(false);
+        setMyList(false);
       }
     };
 
@@ -61,7 +64,7 @@ const onImageMouseLeave = (e) => {
       <header>
         <div className="container flex">
           <div className="logo">
-            <img src="./images/logo.png" alt="" />
+            <img src="/images/logo.png" alt="" />
           </div>
           <div className="nav">
             <ul className={navList ? "small" : "flex"}>
@@ -73,9 +76,19 @@ const onImageMouseLeave = (e) => {
             </ul>
           </div>
           <div className="button flex">
-            <h4>
-              <span>2</span> My List
-            </h4>
+              <div className="nav-item dropdown btn btn-outline-success" onClick={() => {setMyList(!myList)} } style={{marginRight: '1rem'}}>
+                <span>2</span> My List
+              </div>
+                <div className={`dropdown-menu ${myList ? "show" : ""}`} style={{marginRight: '8rem'}}>
+                  <ul className="dropdown-list">
+                    <li>
+                      <div onClick={() => {navigate('profile/favorite')}}>Favorite</div>
+                    </li>
+                    <li>
+                      <div onClick={() => {navigate('/manage/list-property')}}>Manage</div>
+                    </li>
+                  </ul>
+                </div>
             {userInfo ? (
                 <div
                   className="nav-item dropdown"
@@ -101,6 +114,9 @@ const onImageMouseLeave = (e) => {
                   
                   <div className={`dropdown-menu ${profileList ? "show" : ""}`} >
                     <ul className="dropdown-list">
+                      <li>
+                        <div onClick={() => {navigate('/profile')}}>Profile</div>
+                      </li>
                       <li>
                         <div onClick={() => {navigate('/profile')}}>Profile</div>
                       </li>

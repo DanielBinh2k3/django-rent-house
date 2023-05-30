@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './propertyScreen.css';
 import { FiShare } from 'react-icons/fi';
 import {MdFavoriteBorder, MdFavorite} from 'react-icons/md';
@@ -8,11 +8,25 @@ import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { Calendar, DateRange } from 'react-date-range';
 import { format } from 'date-fns';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getListingDetails } from '../../apiRequest/actions/listingActions';
+import Loader from '../common/Loader';
+import Message1 from '../common/Message1';
 
 
 const PropertyScreen = () => {
+  const dispatch = useDispatch()
   const newStartDate = new Date();
   const newEndDate = new Date();
+  const navigate = useNavigate()
+  const {slug} = useParams()
+  const listingDetails = useSelector(state => state.listingDetails)
+  const {error, loading ,listing} =listingDetails
+  const listingDetail = listing && listing.listing
+  useEffect (() => {
+    dispatch(getListingDetails(slug))
+  }, [dispatch, slug,])
 
   const [selectionRange, setSelectionRange] = useState({
     startDate: new Date(),
@@ -29,6 +43,11 @@ const PropertyScreen = () => {
     setSelectionRange({ ...ranges.selection, key: 'selection' });
     setIsSelectionDone(true);
   };
+  function HTMLRenderer(props) {
+  return (
+    <div dangerouslySetInnerHTML={{ __html: props.html }} />
+  );
+}
   
     const buttonStyles = {
     backgroundColor: 'transparent',
@@ -46,15 +65,26 @@ const PropertyScreen = () => {
     borderTop: '1px solid #ccc', 
     margin: '24px 0' 
   }
-
+  const imageStyle = {
+    height: '12rem',
+    width: '18rem'
+  }
+  if (error === "Request failed with status code 404"){
+    navigate('/404')
+  }
   return (
     <>
+    {loading ? (
+        <Loader />
+      ) : error ? (
+        <Message1 variant="danger">{error}</Message1>
+      ) : (listing && listing.listing &&
     <div className='container _2hs30c padding-property ' >
       {/* Title */}
         <div className="row">
             <div className="_b8stb0">
               <span className="_1n81at5">
-                  <h3 tabindex="-1" className="hghzvl1 i1wofiac">Plan City Adventures from a Surry Hills </h3>
+                  <h3 tabindex="-1" className="hghzvl1 i1wofiac">{listingDetail.title}</h3>
               </span>
             </div>
           <div className="w-100"></div>
@@ -64,10 +94,11 @@ const PropertyScreen = () => {
                       <span className="_1jvg42j ">
                         <span className="_12m9c11 "></span>
                       </span>
-                      <span className="_17p6nbba" aria-hidden="true">4.92 ·</span>
+                      <span className="_17p6nbba" aria-hidden="true">4.92</span>
+                      <span aria-hidden="true">·</span>
                       <span className="_s65ijh7">595 reviews</span>
                       <span aria-hidden="true">·</span>
-                      <span className="_s65ijh7">Address Temporary</span>
+                      <span className="_s65ijh7">{listingDetail.address}</span>
                   </div>
                 </div>
             </div>
@@ -93,21 +124,21 @@ const PropertyScreen = () => {
         </div>
       {/* Image */}
       <div className='row padding-property'>
-        <div className='col-md-6' style={{height: "27.5rem"}}>
-          <img src='https://a0.muscache.com/im/pictures/miso/Hosting-23206143/original/e7da1f36-922f-4631-a287-91ceda05970f.jpeg?im_w=1200'></img>
+        <div className='col-md-6' style={{height: "26.5rem"}}>
+          <img src={listingDetail.main_photo}></img>
         </div>
         <div className='col-md-6' style={{height: "28rem"}}>
           <div className='row'>
-            <div className='col-6'><img src='https://a0.muscache.com/im/pictures/miso/Hosting-23206143/original/e7da1f36-922f-4631-a287-91ceda05970f.jpeg?im_w=1200'></img>
+            <div className='col-6'style={imageStyle} ><img src={listingDetail.photo1}></img>
             </div> 
-            <div className='col-6'><img src='https://a0.muscache.com/im/pictures/miso/Hosting-23206143/original/e7da1f36-922f-4631-a287-91ceda05970f.jpeg?im_w=1200'></img>
+            <div className='col-6'style={imageStyle}><img src={listingDetail.photo2}></img>
             </div> 
           </div>
           <div style={{paddingTop: '24px'}}></div>
           <div className='row'>
-            <div className='col-6'><img src='https://a0.muscache.com/im/pictures/miso/Hosting-23206143/original/e7da1f36-922f-4631-a287-91ceda05970f.jpeg?im_w=1200'></img>
+            <div className='col-6'style={imageStyle}><img src={listingDetail.photo3}></img>
             </div> 
-            <div className='col-6'><img src='https://a0.muscache.com/im/pictures/miso/Hosting-23206143/original/e7da1f36-922f-4631-a287-91ceda05970f.jpeg?im_w=1200'></img>
+            <div className='col-6'style={imageStyle}><img src={listingDetail.photo4}></img>
             </div> 
           </div>
         </div>
@@ -124,7 +155,7 @@ const PropertyScreen = () => {
           tabindex="-1" 
           className="hghzvl1 i1wofiac "  
           style={{fontSize: '1.5rem', fontWeight: '500'}}>
-          Room in a barn hosted by Michelle & Michael</h3>
+          Room hosted by {listingDetail.realtor}</h3>
         </div>
         <div className='col'>
         <img  
@@ -132,34 +163,34 @@ const PropertyScreen = () => {
         src="https://lh3.googleusercontent.com/ogw/AOLn63FNpotQGl1xsukyIjPyqS5AkG9ThmkKO8b6xMpzPA=s32-c-mo"/>
         </div>
       </div>
-      <div class="address"> Cô Giang, Phường 2, Quận Phú Nhuận, TPHCM</div>
+      <div class="address">{listingDetail.address}</div>
       
       <div style={horizontalLine}></div>
     {/* Main Information */}
     <div class="info-attrs clearfix">
       <div class="info-attr clearfix">
-          <span>Diện tích sử dụng</span>
-          <span>40 m<sup>2</sup></span>
+          <span>Used Area</span>
+          <span>{listingDetail.area} m<sup>2</sup></span>
       </div>
       <div class="info-attr clearfix">
-          <span>Phòng ngủ</span>
-          <span>1</span>
+          <span>Bedrooms</span>
+          <span>{listingDetail.bedrooms}</span>
       </div>
       <div class="info-attr clearfix">
-          <span>Nhà tắm</span>
-          <span>1</span>
+          <span>Bathrooms</span>
+          <span>{listingDetail.bathrooms}</span>
       </div>
       <div class="info-attr clearfix">
-          <span>Pháp lý</span>
-          <span>Không xác định</span>
+          <span>Legal</span>
+          <span>{listingDetail.legal ? listingDetail.legal : 'undefined' }</span>
       </div>
       <div class="info-attr clearfix">
-          <span>Ngày đăng</span>
-          <span>10/05/2023</span>
+          <span>Date Created</span>
+          <span>{listingDetail.date_created}</span>
       </div>
       <div class="info-attr clearfix">
-          <span>Mã BĐS</span>
-          <span>22148807</span>
+          <span>ID Property</span>
+          <span>{listingDetail.id}</span>
       </div>
     </div>
     <div style={horizontalLine}></div>
@@ -167,23 +198,8 @@ const PropertyScreen = () => {
     <div className='info-title'>
       <h4>Description</h4>
     </div>
-    <div class="info-content-body">
-      🌈HỆ THỐNG CĂN HỘ DỊCH VỤ CAO CẤP NGAY TRUNG TÂM QUẬN 2 💥💥<br/>
-      ƯU ĐÃI HỖ TRỢ 1TR KHI XEM PHÒNG VÀ CHỐT NGAY<br/><br/>
-      Vị trí: nằm trên trục đường chính: <br/>
-      🤟 Quận 2: Thảo Điền<br/><br/>
-      📣 Hệ Thống Căn Hộ Dịch Vụ Khu Vực Bình Thạnh, Phú Nhuận, Quận 1, Quận 2 - Full Nội Thất<br/><br/>
-      GIÁ ĐÃ BAO GỒM TẤT CẢ CÁC DỊCH VỤ, TIỆN ÍCH SAU:
-      <br/>📣 Máy giặt, nơi phơi quần áo.
-      <br/>📣 Bào trì, sữa chữa.
-      <br/>📣 Chỗ để xe rộng rãi.
-      <br/>📣 Cửa vân tay an ninh
-      <br/>📣 Camera 24/24 (Khu nhà xe và những khu vực chung).
-      <br/>📣 Dọn vệ sinh hàng tuần (khu vực chung) và thu gom rác hàng ngày.
-      <br/>📣 Giờ giấc tự do, không chung chủ
-      <br/>📣 Full nội thất cao cấp
-      <br/>📣 Phù hợp với các bạn sinh viên , học sinh hay các bạn đã đi làm , gia đình , những ai muốn có một không gian thoải mái, đầy đủ tiện nghi và ngôi nhà nghỉ ngơi sau 1 ngày dài làm việc mệt mỏi , ở lâu dài<br/><br/>✅ MQ Luxury Apartment ✅ chuyên tất cả các loại căn hộ :<br/>✌️ Studio : 5 - 12triệu<br/>✌️ 1 Phòng Ngủ : từ 8 - 15triệu<br/>✌️ 2 Phòng ngủ : chỉ từ 13 triệu
-    </div>
+    
+    <HTMLRenderer html={listingDetail.description} />
     <div style={horizontalLine}></div>
     {/* Banner Rent Cover */}
     <div>
@@ -279,7 +295,7 @@ const PropertyScreen = () => {
     </div>
     <div style={horizontalLine}></div>
     {/* Things To Know */}
-    </div>
+    </div>)}
     </>
   )
 }

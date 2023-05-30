@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Button, Form, Row, Col } from "react-bootstrap";
 import FormContainer from "../common/FormContainer";
 import { useDispatch, useSelector } from 'react-redux';
-import axios from 'axios'
+import axios, { formToJSON } from 'axios'
 import { createListing } from "../../apiRequest/actions/listingActions";
 import { useNavigate } from "react-router-dom";
 import Loader from "../common/Loader";
 import Message1 from "../common/Message1";
 const AddPropertyScreen = () => {
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
   const [contact, setContact] = useState("")
   const [home_type, setHomeType] = useState("");
   const [address, setAddress] = useState("");
@@ -26,9 +25,13 @@ const AddPropertyScreen = () => {
   const [uploading, setUploading] = useState(false);
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
+  const [previewURL, setPreviewURL] = useState('');
+  const [previewURLs, setPreviewURLs] = useState([]);
   const [countdown, setCountdown] = useState(3); // set initial countdown to 3 seconds
   const dispatch = useDispatch();
   const navigate = useNavigate()
+  const userLogin = useSelector((state) => state.userLogin)
+  const {userInfo} = userLogin
   const createdListing = useSelector((state) => state.listingCreate);
   const { loading, error, success } = createdListing;
   useEffect(() => {
@@ -53,8 +56,7 @@ const submitHandler = async (e) => {
   console.log(main_photo)
   console.log(uploaded_images)
   const formData = new FormData();
-  formData.append("name", name);
-  formData.append("contact", contact);
+  formData.append("phone_contact", contact);
   formData.append("home_type", home_type);
   formData.append("address", address);
   formData.append("city", city);
@@ -65,12 +67,14 @@ const submitHandler = async (e) => {
   formData.append("title", title);
   formData.append("description", description);
   formData.append("main_photo", main_photo);
-  uploaded_images.forEach((file, index) => {
-      formData.append(`uploaded_images[${index}]`, file);
-    });
+  uploaded_images.map((file, index) => {
+    formData.append(`uploaded_images[${index}]`, file);
+  });
+
   formData.append("is_published", is_published);
   formData.append("bedrooms", bedrooms);
   formData.append("bathrooms", bathrooms);
+  console.log(formToJSON(formData))
   dispatch(createListing(formData));
 };
 
@@ -87,7 +91,13 @@ const submitHandler = async (e) => {
   const handleFileChange = (e) => {
     console.log(e.target.files)
     setMainPhoto(e.target.files[0]);
-    console.log(main_photo)
+    if (main_photo) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewURL(reader.result);
+      };
+      reader.readAsDataURL(main_photo);
+    }
   };
 
   const handleMultiFileChange = (event) => {
@@ -99,10 +109,7 @@ const submitHandler = async (e) => {
     <>
       {loading && <Loader/>}
       {error && <Message1 variant="danger">{error}</Message1>}
-      {success && (
-      <div>
-      <p>Listing created successfully! Redirecting to homepage in {countdown} seconds...</p>
-      </div>)}
+
         {step === 1 && (
           <FormContainer onSubmit={handleNextStep}>
             <Form className="card bg-light" style={{height: '500px'}}>
@@ -119,7 +126,11 @@ const submitHandler = async (e) => {
               </div>
             <label>
               Name:
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+              <input type="text" value={userInfo.name}  disabled/>
+            </label>
+            <label>
+              Email:
+              <input type="text" value={userInfo.email}  disabled/>
             </label>
             <label>
               Contact:
@@ -285,6 +296,7 @@ const submitHandler = async (e) => {
           <Form className="card bg-light" style={{height: '500px'}}>
               <div>
                 <h3>Home Type</h3>
+                {success && (<Message1 variant="success">Listing created successfully! Redirecting to homepage in <span>{countdown} seconds...</span></Message1>)}
                 <div className="steps-indicator flex">
                   <div className="step active">Step 1</div>
                   <div className="step active">Step 2</div>
@@ -299,8 +311,18 @@ const submitHandler = async (e) => {
            <input type="file" multiple onChange={handleMultiFileChange} />
             {uploading && <div>Upload done</div>}
           </label>
-          {main_photo && <img src={main_photo} alt="Main" />}
-          {uploaded_images && <img src={uploaded_images} alt="Uploaded_images" />}
+          <div className="row" style={{height: '6rem'}}>
+            <div className="col-md-4">
+              {main_photo && <img src={previewURL} alt="Main" />}
+            </div>
+            <div >
+              <div className="col-md2">
+                {previewURLs.map((url, index) => (
+                  <img key={index} src={url} alt={`Preview ${index}`} />
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="form-check d-flex justify-content-start">
               <input className="form-check-input" type="checkbox" checked={is_published} onChange={() => setIsPublished(!is_published)} />
               <label className="form-check-label" for="form1Example3">Public</label>

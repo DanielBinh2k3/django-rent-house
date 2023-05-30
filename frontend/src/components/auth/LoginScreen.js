@@ -55,9 +55,11 @@ const LoginScreen = () => {
         if (!response.ok) {
           throw new Error('Authentication failed');
         }
-        return response.json();
+        console.log(response.json())
+        return response;
       })
       .then(data => {
+        console.log(data)
         // Dispatch a login action with the user info
         dispatch(login(userObject.email, 'BRzCuF())Un!6cE8atX#VHj7'));
       })
@@ -123,6 +125,7 @@ const handleFBCallbackResponse = (response) => {
         return response.json();
       })
       .then(data => {
+        console.log(data)
         // Dispatch a login action with the user info
         dispatch(login(userObject.email, 'BRzCuF())Un!6cE8atX#VHj7'));
       })

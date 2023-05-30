@@ -19,6 +19,7 @@ import {
     LISTING_UPDATE_FAIL,
     LISTING_UPDATE_REQUEST,
     LISTING_UPDATE_SUCCESS,
+    LISTING_UPDATE_RESET,
 
 } 
     from "../constants/listingConstants"
@@ -42,11 +43,11 @@ export const getPublicListings = () => async (dispatch) =>{
     }
 }
 
-export const getListingDetails = (id) => async (dispatch) => {
+export const getListingDetails = (slug) => async (dispatch) => {
     try {
         dispatch({ type: LISTING_DETAILS_REQUEST })
-
-        const { data } = await axios.get(`/api/listings/${id}`)
+        
+        const { data } = await axios.get(`/api/listing/detail?slug=${slug}`)
 
         dispatch({
             type: LISTING_DETAILS_SUCCESS,
@@ -62,6 +63,37 @@ export const getListingDetails = (id) => async (dispatch) => {
         })
     }
 }
+
+export const getListingDetailsPk = (pk) => async (dispatch, getState) => {
+    try {
+        dispatch({ type: LISTING_DETAILS_REQUEST })
+        
+        const {
+            userLogin: {userInfo},
+        } = getState()
+
+        const config = {
+            headers: {
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        }
+        const {data} =  await axios.get(`/api/listing/manage/${pk}`, config)
+
+        dispatch({
+            type: LISTING_DETAILS_SUCCESS,
+            payload: data
+        })
+
+    } catch (error) {
+        dispatch({
+            type: LISTING_DETAILS_FAIL,
+            payload: error.response && error.response.data.detail
+                ? error.response.data.detail
+                : error.message,
+        })
+    }
+}
+
 export const deleteListing = (id) => async (dispatch, getState) =>{
     try{
         dispatch({type: LISTING_DELETE_REQUEST})
@@ -72,12 +104,12 @@ export const deleteListing = (id) => async (dispatch, getState) =>{
         const config = {
             headers: {
                 'Content-type': 'application/json',
-                Authorization: `Beerer ${userInfo.token}`
+                Authorization: `Bearer ${userInfo.token}`
             }
         }
         
         const {data} = await axios.delete(
-            `/api/listings/delete/${id}`,
+            `/api/listing/manage/${id}`,
             config
             )
         dispatch({
@@ -94,7 +126,7 @@ export const deleteListing = (id) => async (dispatch, getState) =>{
     }
 }
 
-export const createListing = () => async (dispatch, getState) =>{
+export const createListing = (listingData) => async (dispatch, getState) =>{
     try{
         dispatch({type: LISTING_CREATE_REQUEST})
         const {
@@ -102,13 +134,13 @@ export const createListing = () => async (dispatch, getState) =>{
         } = getState()
         const config = {
             headers: {
-                'Content-type': 'application/json',
+                'Content-Type': 'multipart/form-data',
                 Authorization: `Bearer ${userInfo.token}`
             }
         }
         const {data} = await axios.post(
-            `/api/listings/create/`,
-            {},
+            `/api/listing/manage`,
+            listingData,
             config
             )
         dispatch({
@@ -125,46 +157,34 @@ export const createListing = () => async (dispatch, getState) =>{
         })
     }
 }
-export const updateListing = (listing) => async (dispatch, getState) => {
-    try {
-        dispatch({
-            type: LISTING_UPDATE_REQUEST
-        })
+export const updateListing = (pk, listing) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: LISTING_UPDATE_REQUEST });
 
-        const {
-            userLogin: { userInfo },
-        } = getState()
+    const {
+      userLogin: { userInfo },
+    } = getState();
 
-        const config = {
-            headers: {
-                'Content-type': 'application/json',
-                Authorization: `Bearer ${userInfo.token}`
-            }
-        }
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
 
-        const { data } = await axios.put(
-            `/api/listings/update/${listing._id}/`,
-            listing,
-            config
-        )
-        dispatch({
-            type: LISTING_UPDATE_SUCCESS,
-            payload: data,
-        })
+    const { data } = await axios.put(`/api/listing/manage/${pk}`, listing, config);
 
+    dispatch({ type: LISTING_UPDATE_SUCCESS, payload: data });
 
-        dispatch({
-            type: LISTING_DETAILS_SUCCESS,
-            payload: data
-        })
+    // Reset listingUpdate state
+    dispatch({ type: LISTING_UPDATE_RESET });
 
-
-    } catch (error) {
-        dispatch({
-            type: LISTING_UPDATE_FAIL,
-            payload: error.response && error.response.data.detail
-                ? error.response.data.detail
-                : error.message,
-        })
-    }
-}
+  } catch (error) {
+    dispatch({
+      type: LISTING_UPDATE_FAIL,
+      payload: error.response && error.response.data.detail
+        ? error.response.data.detail
+        : error.message,
+    });
+  }
+};

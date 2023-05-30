@@ -18,6 +18,7 @@ import ResetPassword from './components/profile/ResetPassword'
 import NotFound404ErrorPage from './components/NotFound404ErrorPage'
 import AddPropertyScreen from './components/realtor_page/AddPropertyScreen'
 import ListProperty from './components/realtor_page/ListProperty'
+import FavoriteScreen from './components/profile/FavoriteScreen'
 
 function App() {
   return (
@@ -34,8 +35,10 @@ function App() {
           <Route exact path='/contact' element={<Contact/>} />
           <Route path='/login' element={<LoginScreen/>} />
           <Route path='/register' element={<RegisterScreen/>} />
-          <Route path='/property' element={<PropertyScreen/>} />
+          <Route path='/404' element={<NotFound404ErrorPage/>} />
+          <Route path='/:slug' element={<PropertyScreen/>} />
           <Route path='/profile' element={<ProfileScreen/>} />
+          <Route path='profile/favorite' element={<FavoriteScreen/>} />
           <Route path='/profile/personal-infomation' element={<InformationProfileScreen/>} />
           <Route path='profile/reset-password' element={<ResetPassword/>} />
           <Route path='manage/add-property' element={<AddPropertyScreen/>} />

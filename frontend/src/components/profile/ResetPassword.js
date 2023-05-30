@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaBell, FaHeart, FaAddressCard, FaUnlockAlt, FaSignOutAlt } from 'react-icons/fa';
 import './profilescreen.css';
-import { useSelector } from 'react-redux';
-
+import { useDispatch, useSelector } from 'react-redux';
+import { resetPasswordUser } from '../../apiRequest/actions/userActions';
+import { useNavigate } from 'react-router-dom';
+import Message1 from '../common/Message1';
 const ResetPassword = () => {
-    const userLogin = useSelector(state=> state.userLogin)
-    const {error, loading, userInfo} = userLogin
+  const userLogin = useSelector(state=> state.userLogin)
+  const {error, loading, userInfo} = userLogin
+  const userResetPassword = useSelector(state=> state.userResetPassword)
+  const { successResetPassword, error: errorResetPassword, loading: loadingResetPassword, user: userResetPass} = userResetPassword
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
-  const handleSubmit = (e) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // TODO: handle form submission
+    const formData = new FormData();
+    formData.append('old_password', oldPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+
+    dispatch(resetPasswordUser(formData));
   };
+  useEffect(() => {
+    if (successResetPassword){
+      navigate('/profile')
+    }
+  }, [navigate])
   return (
     <>
       <div id="profile" className="mg-container" style={{marginBottom: '4rem'}}>
@@ -137,7 +152,7 @@ const ResetPassword = () => {
                 </div>
                 <div className="col-sm-12">
                 <div className="f-footer">
-                    <button type="submit" className="left-170">
+                    <button className="btn btn-success btn-block left-170" onClick={handleSubmit}>
                     Update
                     </button>
                 </div>

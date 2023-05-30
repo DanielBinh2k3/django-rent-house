@@ -2,7 +2,7 @@ import {createStore, combineReducers, applyMiddleware} from 'redux'
 import thunk from 'redux-thunk'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import { userDeleteReducer, userDetailsReducer, userListReducer,
-    userLoginReducer, userRegisterReducer, userUpdateProfileReducer, userUpdateReducer}
+    userLoginReducer, userRegisterReducer, userResetPasswordReducer, userUpdateProfileReducer, userUpdateReducer}
     from './apiRequest/reducers/userReducers'
 import  {listingListReducer, listingDetailsReducer, 
     listingDeleteReducer, listingCreateReducer, listingUpdateReducer }
@@ -17,6 +17,7 @@ const reducer = combineReducers({
     userList: userListReducer,
     userDelete: userDeleteReducer,
     userUpdate: userUpdateReducer,
+    userResetPassword: userResetPasswordReducer,
 
     listingList: listingListReducer,
     listingDetails: listingDetailsReducer,

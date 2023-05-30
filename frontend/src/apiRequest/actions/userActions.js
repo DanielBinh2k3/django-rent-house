@@ -23,7 +23,13 @@ import { USER_LOGIN_FAIL,
     USER_DELETE_FAIL,
     USER_UPDATE_SUCCESS,
     USER_UPDATE_FAIL,
-    USER_UPDATE_REQUEST} from '../constants/userConstants'
+    USER_UPDATE_REQUEST,
+
+    USER_RESET_PASSWORD_REQUEST,
+    USER_RESET_PASSWORD_SUCCESS,
+    USER_RESET_PASSWORD_FAIL,
+    USER_RESET_PASSWORD_RESET,
+} from '../constants/userConstants'
 
 export const login = (email, password) => async (dispatch) => {
     try{
@@ -158,7 +164,7 @@ export const getUpdateUserProfile = (user) => async (dispatch, getState) => {
             }
         }
         const {data} = await axios.put(
-            `/api/users/profile/update`,
+            `/auth/users/profile/update`,
             user,
             config
         )
@@ -289,6 +295,48 @@ export const updateUser = (user) => async (dispatch, getState) => {
             type:USER_UPDATE_FAIL,
             payload: error.response && error.response.data.message
             ?error.response.data.message
+            :error.message,
+        })
+    }
+}
+
+export const resetPasswordUser = (password) => async (dispatch, getState) => {
+    try{
+        dispatch({
+            type: USER_RESET_PASSWORD_REQUEST,
+        })
+        const {
+            userLogin: {userInfo}
+        } = getState()
+
+        const config = {
+            headers: {
+                'Content-type': 'application/json',
+                Authorization: `Bearer ${userInfo.token}`
+            }
+        }
+        const {data} = await axios.patch(
+            `/auth/user/password-reset/`,
+            password,
+            config
+        )
+        dispatch({
+            type:USER_RESET_PASSWORD_SUCCESS,
+        })
+        dispatch({
+            type: USER_RESET_PASSWORD_RESET,
+        }) 
+        dispatch({
+            type: USER_DETAILS_SUCCESS,
+            payload: data
+        })
+    }
+   
+    catch(error){
+        dispatch({
+            type:USER_RESET_PASSWORD_FAIL,
+            payload: error.response && error.response.data.error
+            ?error.response.data.error
             :error.message,
         })
     }

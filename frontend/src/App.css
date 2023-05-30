@@ -208,4 +208,6 @@ img {
 .active{
   color: green
 }
-
+header{
+  z-index:250
+}

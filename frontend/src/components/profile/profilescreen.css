@@ -528,7 +528,7 @@ label.titlename70 {
 
 @media(min-width: 768px) {
     .modal-dialog {
-        width: 400px;
+        /* width: 400px; */
         margin: 30px auto
     }
 }

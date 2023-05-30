@@ -1,0 +1,4 @@
+https://pro.mogi.vn/report/PropertySummaryByPlace?cityId=30&monthId=202208&propertyTypeId=1
+https://pro.mogi.vn/report/PropertySummaryByPriceRange?cityId=30&monthId=202208&propertyTypeId=1
+https://pro.mogi.vn/report/PropertySummaryByAreaRange?cityId=30&monthId=202208&propertyTypeId=1
+https://pro.mogi.vn/report/PropertySummaryByPriceChanged?cityId=30&monthId=202208&propertyTypeId=1

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Alert } from 'react-bootstrap'
 
-const Message = ({variant, children}) => {
+const Message1 = ({variant, children}) => {
   return (
     <Alert variant={variant}>
         {children}
@@ -9,4 +9,4 @@ const Message = ({variant, children}) => {
   )
 }
 
-export default Message
+export default Message1
