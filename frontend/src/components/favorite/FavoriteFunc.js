@@ -17,3 +17,16 @@ export const toggleFavorites = (itemId) => {
   }
   window.location.reload();
 };
+export const isFavorite = (listingId) => {
+    // Check if favorites exist in local storage
+    let storedFavorites = JSON.parse(localStorage.getItem("favoriteProperties"));
+
+    // If favorites don't exist, create an empty array
+    if (!storedFavorites) {
+      storedFavorites = [];
+      localStorage.setItem("favoriteProperties", JSON.stringify(storedFavorites));
+    }
+
+    // Check if the listingId exists in the favorites list
+    return storedFavorites.includes(listingId);
+  };

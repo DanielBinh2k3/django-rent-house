@@ -21,6 +21,9 @@ import {
     LISTING_UPDATE_REQUEST,
     LISTING_UPDATE_SUCCESS,
     LISTING_UPDATE_RESET,
+    LISTING_SEARCH_REQUEST,
+    LISTING_SEARCH_SUCCESS,
+    LISTING_SEARCH_FAIL,
 } 
     from "../constants/listingConstants"
 
@@ -86,4 +89,17 @@ export const listingUpdateReducer = (state = {listing: {}}, action) =>{
             return {listing: {}}
         default: return state
     }
+}
+
+export const listingSearchReducer = (state = { listings: [] }, action) => {
+  switch (action.type) {
+    case LISTING_SEARCH_REQUEST:
+      return { loading: true, listings: [] }
+    case LISTING_SEARCH_SUCCESS:
+      return { loading: false, listings: action.payload }
+    case LISTING_SEARCH_FAIL:
+      return { loading: false, error: action.payload }
+    default:
+      return state
+  }
 }

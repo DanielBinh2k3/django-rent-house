@@ -4,7 +4,7 @@ import { getPublicListings } from "../../../apiRequest/actions/listingActions";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../common/Loader";
 import Message1 from "../../common/Message1";
-import { toggleFavorites } from "../../favorite/FavoriteFunc";
+import { isFavorite, toggleFavorites } from "../../favorite/FavoriteFunc";
 
 
 const RecentCard = () => {
@@ -24,19 +24,7 @@ const RecentCard = () => {
     }
 
   }, [error, loading, listings, navigate]);
-  const isFavorite = (listingId) => {
-    // Check if favorites exist in local storage
-    let storedFavorites = JSON.parse(localStorage.getItem("favoriteProperties"));
 
-    // If favorites don't exist, create an empty array
-    if (!storedFavorites) {
-      storedFavorites = [];
-      localStorage.setItem("favoriteProperties", JSON.stringify(storedFavorites));
-    }
-
-    // Check if the listingId exists in the favorites list
-    return storedFavorites.includes(listingId);
-  };
 
   return (
     <>

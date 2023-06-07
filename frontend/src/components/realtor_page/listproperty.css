@@ -240,4 +240,22 @@ a, a:focus, a:hover, a:active {
 .property-list{
     height: 100%;
 }
+input[type="text"] {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  margin-right: 5px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  flex-grow: 1;
+}
 
+.property-commands ul li.search select {
+    border: 1px solid #bcbcbc;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    height: 30px;
+    width: 150px;
+    border-radius: 1px;
+}

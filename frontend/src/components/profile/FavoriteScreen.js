@@ -122,15 +122,17 @@ const FavoriteScreen = () => {
               <a href={`/${property.slug}`} className="property-title">
                 {property.title}
               </a>
-              <ul className="property-info-list clearfix col-md-10">
+              <ul className="property-info-list clearfix col-md-12">
                 <li><div className="property-price-1">{property.price}$</div></li>
                 <li className="spliter"><span>|</span></li>
                 <li><div className="property-id">Property ID: {property.id}</div></li>
                 <li className="spliter"><span>|</span></li>
-                <li><div className="property-view-count ">Views Count: {property.view_counts}</div></li>
+                <li><div className="property-id">Property Adreess: {property.address}</div></li>
               </ul>
             </div>
-
+            <div>
+              <span style={{fontWeight: '8'}}>Date Create: {property.date_created}</span >
+            </div>
           </div>
         ))}
       </div>
