@@ -15,7 +15,7 @@ const Header = () => {
   const { error, loading, userInfo } = userLogin;
   const navigate = useNavigate()
   const logOutHandle = () => {
-    const confirmLogout = window.confirm("Are you sure you want to log out?");
+  const confirmLogout = window.confirm("Are you sure you want to log out?");
     if (confirmLogout) {
       dispatch(logout());
       navigate('/login')

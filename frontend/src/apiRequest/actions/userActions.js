@@ -113,7 +113,7 @@ export const register =
 
 export const logout = () => (dispatch) => {
 	localStorage.removeItem("userInfo");
-	FB.logout();
+	// FB.logout();
 	dispatch({
 		type: USER_LOGOUT,
 	});

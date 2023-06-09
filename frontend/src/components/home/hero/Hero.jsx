@@ -21,7 +21,7 @@ const Hero = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     // Dispatch the searchListing action with the searchParams
-    dispatch(searchListing(searchParams));
+    // dispatch(searchListing(searchParams));
   };
 
   return (

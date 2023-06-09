@@ -17,8 +17,12 @@ function PropertyList() {
 	const [showModal, setShowModal] = useState({});
 	const listingList = useSelector((state) => state.listingList);
 	const { error, loading, listings: properties } = listingList;
+	const userInfo = localStorage.getItem("userInfo");
 
 	useEffect(() => {
+		if (!userInfo) {
+			navigate("/login");
+		}
 		dispatch(getPublicListings());
 	}, [dispatch]);
 
