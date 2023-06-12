@@ -1,6 +1,6 @@
 import pytest
 import factory
-from user.models import UserAccount, UserAccountManager
+from base.models import UserAccount, UserAccountManager
 from factories_user import UserAccountFactory, UserAccountManagerFactory
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -8,13 +8,11 @@ from django.conf import settings
 from django.test import override_settings
 from django.db import connection
 User = get_user_model()
-from tests.confest import users_db, listings_db
 
 
 @pytest.mark.django_db
 class UserAccountTestCase(TestCase):
 
-    databases = ['users']
 
     def test_create_user_account(self):
         user = UserAccountFactory.create()
@@ -44,7 +42,6 @@ User = get_user_model()
 # Then, you can use the factories in your test cases like this:
 @pytest.mark.django_db
 class UserAccountManagerTestCase(TestCase):
-    databases = ['users']
     def setUp(self):
         self.user_account_manager = UserAccountManager()
 

@@ -1,6 +1,6 @@
-from .models import Listing
+from .models import UserAccount
 
 
-def delete_realtors_listing_data(realtor_email):
-    if Listing.objects.filter(realtor=realtor_email).exists():
-        Listing.objects.filter(realtor=realtor_email).delete()
+def delete_user_data(email):
+    if UserAccount.objects.filter(email=email).exists():
+        UserAccount.objects.filter(email=email).delete()

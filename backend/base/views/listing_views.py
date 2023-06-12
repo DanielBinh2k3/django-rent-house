@@ -19,9 +19,12 @@ import json
 from base.pagination import CustomPageNumberPagination
 from unidecode import unidecode
 import re
-from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.search import SearchVector, SearchQuery
 logger = logging.getLogger(__name__)
 
+    
+#Ktra thời gian CRUD time when using index, vd xóa room() có house id có nên đánh index không (nhiều dữ liệu)
+from django.db.models import Prefetch
 
 class ManageListingView(APIView):
     permission_classes = [IsRealtor | permissions.IsAdminUser]
@@ -36,35 +39,33 @@ class ManageListingView(APIView):
     @transaction.atomic
     def get(self, request, pk=None):
         try:
-            with transaction.atomic():
+            # with transaction.atomic():
+            # không ảnh hưởng nên k thêm
+            if pk != None:
+                listing = Listing.objects.select_related().get(id=pk)
+                serializer = PropertySerializer(listing)
+            else:
+                listings = Listing.objects.prefetch_related().filter(
+                    realtor=request.user).all()
+                serializer = PropertySerializer(listings, many=True)
 
-                if pk != None:
-                    listing = Listing.objects.get(id=pk)
-                    serializer = PropertySerializer(listing)
-                else:
-                    listings = Listing.objects.filter(
-                        realtor=request.user).all()
-                    serializer = PropertySerializer(listings, many=True)
-
-                return Response(serializer.data)
+            return Response(serializer.data)
+        
         except Exception as e:
             logger.exception(str(e))
             return Response({'error': 'An error occurred while retrieving listings.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     @swagger_auto_schema(
         operation_description="Create a new property listing",
         request_body=PropertySerializer,
     )
     @transaction.atomic
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(context={'request': request}, data=request.data)
         try:
             with transaction.atomic():
-                print(request.data)
-                serializer = PropertySerializer(
-                    data=request.data, context={'request': request})
                 if serializer.is_valid():
                     serializer.save()
+                    print(serializer.data)
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -73,7 +74,7 @@ class ManageListingView(APIView):
         except Exception as e:
             logger.exception(str(e))
             return Response({'error': f'An error occurred while creating the listing. {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        
     @swagger_auto_schema(
         operation_description="Update an existing property listing",
         request_body=PropertySerializer,
@@ -93,6 +94,7 @@ class ManageListingView(APIView):
         try:
             with transaction.atomic():
                 listing = Listing.objects.get(id=pk)
+                # Exception does not exist
                 self.check_object_permissions(request, listing)
                 print(request.data)
                 serializer = PropertySerializer(
@@ -163,22 +165,22 @@ class ListingDetailView(APIView):
             )
         ]
     )
-    @transaction.atomic
+    # @transaction.atomic
     def get(self, request):
         try:
-            with transaction.atomic():
-                slug = request.query_params.get('slug')
-                listing = Listing.objects.get(slug=slug, is_published=True)
-                # Increment the view count for this listing
-                listing.view_counts += 1
-                listing.save()
+            # with transaction.atomic():
+            slug = request.query_params.get('slug')
+            listing = Listing.objects.get(slug=slug, is_published=True)
+            # Increment the view count for this listing
+            listing.view_counts += 1
+            listing.save()
 
-                serializer = PropertySerializer(listing)
+            serializer = PropertySerializer(listing)
 
-                return Response(
-                    {'listing': serializer.data},  # serialize the data here
-                    status=status.HTTP_200_OK
-                )
+            return Response(
+                {'listing': serializer.data},  # serialize the data here
+                status=status.HTTP_200_OK
+            )
 
         except Listing.DoesNotExist:
             logger.error(f'Listing with slug "{slug}" not found.')
@@ -254,7 +256,7 @@ class SearchListingView(APIView):
             # Get query parameters
             home_type = request.GET.get('home_type')
             city = request.GET.get('city')
-            max_price = request.GET.get('max_price')
+            price_range = request.GET.get('price_range')
             search_term = request.GET.get('search_term')
 
             # Build query set with all listings
@@ -267,18 +269,24 @@ class SearchListingView(APIView):
 
             # Filter by city
             if city:
-                queryset = queryset.filter(city__icontains=city)
+                queryset = queryset.filter(city__exact=city)
 
-            # Filter by max_price
-            if max_price:
-                queryset = queryset.filter(price__lte=max_price)
+            if price_range:
+                if '-' in price_range:
+                    min_price, max_price = price_range.split('-')
+                    queryset = queryset.filter(
+                        price__range=(int(min_price), int(max_price)))
+                else:
+                    # Handle the case where price_range is '>1000'
+                    price = price_range[1:]  # Remove the '>' symbol
+                    queryset = queryset.filter(price__gt=int(price))
 
-            # Search by title, slug, and search_vector
+            # Perform full-text search
             if search_term:
-                queryset = queryset.annotate(
-                    search=SearchVector('title', 'slug', 'address')
-                ).filter(search=search_term)
+                queryset = queryset.filter(Q(title__icontains=search_term) | Q(
+                    slug__icontains=search_term) | Q(address__icontains=search_term))
 
+            print(queryset)
             # Serialize and return results
             serializer = PropertySerializer(queryset, many=True)
             return Response(serializer.data)
@@ -298,8 +306,8 @@ class SearchListingRealtorView(SearchListingView):
         manual_parameters=[
             openapi.Parameter('is_published', openapi.IN_QUERY,
                               description="Filter by public status", type=openapi.TYPE_BOOLEAN),
-            openapi.Parameter('state', openapi.IN_QUERY,
-                              description="Filter by state", type=openapi.TYPE_STRING),
+            openapi.Parameter('is_available', openapi.IN_QUERY,
+                              description="Filter by is_available", type=openapi.TYPE_BOOLEAN),
         ],
         responses={status.HTTP_200_OK: PropertySerializer(many=True)}
     )
@@ -307,7 +315,7 @@ class SearchListingRealtorView(SearchListingView):
         try:
             # Get query parameters
             is_published = request.GET.get('is_published')
-            # state = request.GET.get('state')
+            is_available = request.GET.get('is_available')
 
             # Build query set with all listings for the authenticated realtor
             queryset = Listing.objects.filter(realtor=request.user)
@@ -315,7 +323,11 @@ class SearchListingRealtorView(SearchListingView):
             # Filter by public status, if is_published query parameter is present
             if is_published is not None:
                 queryset = queryset.filter(
-                    is_published__icontains=is_published)  # icontains va contains
+                    is_published__icontains=is_published)
+            # Filter by available status, if is_available query parameter is present
+            if is_available is not None:
+                queryset = queryset.filter(
+                    is_available__icontains=is_available)
 
             # Call parent class method to filter by home_type, city, max_price, search_term, and is_published
             serialized_data = super().get(request, queryset=queryset).data
@@ -330,9 +342,98 @@ class SearchListingRealtorView(SearchListingView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class SearchListingView(APIView):
+    logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__name__)
+    permission_classes = (permissions.AllowAny,)
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('home_type', openapi.IN_QUERY, description="Filter by home type", type=openapi.TYPE_STRING),
+            openapi.Parameter('city', openapi.IN_QUERY, description="Filter by city", type=openapi.TYPE_STRING),
+            openapi.Parameter('max_price', openapi.IN_QUERY, description="Filter by maximum price", type=openapi.TYPE_NUMBER),
+            openapi.Parameter('search_term', openapi.IN_QUERY, description="Search by title or slug", type=openapi.TYPE_STRING),
+        ],
+        responses={status.HTTP_200_OK: PropertySerializer(many=True)}
+    )
+    def get(self, request):
+        try:
+            # Get query parameters
+            home_type = request.query_params.get('home_type')
+            city = request.query_params.get('city')
+            max_price = request.query_params.get('max_price')
+            search_term = request.query_params.get('search_term')
+
+            # Build the queryset with all listings
+            queryset = Listing.objects.all()
+
+            # Filter by home_type
+            if home_type:
+                queryset = queryset.filter(home_type__icontains=home_type)
+
+            # Filter by city
+            if city:
+                queryset = queryset.filter(city__exact=city)
+
+            # Filter by max_price
+            if max_price:
+                queryset = queryset.filter(price__lte=max_price)
+
+            # Perform full-text search
+            if search_term:
+                queryset = queryset.filter(Q(title__icontains=search_term) | Q(slug__icontains=search_term) | Q(address__icontains=search_term))
+
+            # Serialize and return results
+            serializer = PropertySerializer(queryset, many=True)
+            return Response(serializer.data)
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when searching for listings'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class SearchListingRealtorView(SearchListingView):
+    permission_classes = (IsRealtor, permissions.IsAdminUser)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('is_published', openapi.IN_QUERY, description="Filter by public status", type=openapi.TYPE_BOOLEAN),
+            openapi.Parameter('is_available', openapi.IN_QUERY, description="Filter by is_available", type=openapi.TYPE_BOOLEAN),
+        ],
+        responses={status.HTTP_200_OK: PropertySerializer(many=True)}
+    )
+    def get(self, request):
+        try:
+            # Get query parameters
+            is_published = request.query_params.get('is_published')
+            is_available = request.query_params.get('is_available')
+
+            # Build the queryset with all listings for the authenticated realtor
+            queryset = Listing.objects.filter(realtor=request.user)
+
+            # Filter by public status, if is_published query parameter is present
+            if is_published is not None:
+                queryset = queryset.filter(is_published=is_published)
+
+            # Filter by available status, if is_available query parameter is present
+            if is_available is not None:
+                queryset = queryset.filter(is_available=is_available)
+
+            # Call parent class method to filter by home_type, city, max_price, and search_term
+            serialized_data = super().get(request).data
+
+            # Serialize and return results
+            return Response(serialized_data)
+
+        except Exception as e:
+            self.logger.exception(e)
+            return Response(
+                {'error': 'Something went wrong when searching for listings'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class OrderListingNormalView(APIView):
     permission_classes = (permissions.IsAuthenticated, )
@@ -443,10 +544,10 @@ class OrderListingRealtorView(OrderListingNormalView):
             401: "Authentication credentials were not provided.",
         },
     )
-    @transaction.atomic
+    # @transaction.atomic
     def get(self, request):
         try:
-            with transaction.atomic():
+            # with transaction.atomic():
                 orders = Order.objects.filter(listing__realtor=request.user)
                 serializer = OrderSerializer(orders, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)

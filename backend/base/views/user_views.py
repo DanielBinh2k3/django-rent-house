@@ -43,6 +43,7 @@ class RegisterView(APIView):
             serializer.is_valid(raise_exception=True)
             user = serializer.save()
 
+
             token = RefreshToken.for_user(user).access_token
 
             current_site = get_current_site(request).domain
@@ -78,26 +79,22 @@ class UserProfileView(generics.GenericAPIView):
     parser_classes = (MultiPartParser, FormParser)
     permission_classes = [IsAuthenticated]
 
+    def get_object(self):
+        return self.request.user
+    
     @swagger_auto_schema(responses={200: UserSerializer()})
-    def get(self, request, pk, format=None):
+    def get(self, request, format=None):
         try:
-            user = User.objects.get(pk=pk)
-            serializer = self.get_serializer(user, data=request.data)
-
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
             logger.info(f'User details retrieved: {serializer.data}')
-
-            return Response(
-                {'user': serializer.data},
-                status=status.HTTP_200_OK
-            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            logger.error('User does not exist')
             return Response(
                 {'error': 'User does not exist'},
                 status=status.HTTP_404_NOT_FOUND
             )
         except Exception as e:
-            logger.error(f'Error retrieving user details: {str(e)}')
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -211,6 +208,17 @@ class LogInUserView(APIView):
             logger.error(f'Error logging in user: {str(e)}')
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class LogoutView(APIView):
+    #  permission_classes = (IsAuthenticated,)
+     def post(self, request):
+          try:
+               refresh_token = request.data["refresh_token"]
+               print(refresh_token)
+               token = RefreshToken(refresh_token)
+               token.blacklist()
+               return Response(status=status.HTTP_205_RESET_CONTENT)
+          except Exception as e:
+               return Response(status=status.HTTP_400_BAD_REQUEST)
 
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = ResetPasswordEmailRequestSerializer

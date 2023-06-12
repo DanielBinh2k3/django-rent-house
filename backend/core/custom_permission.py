@@ -13,4 +13,4 @@ class IsRealtor(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         # Check if the user making the request is the owner of the listing, a realtor, or an admin user
-        return obj.realtor == request.user
+        return obj.realtor == request.user or request.user.isAdmin == True

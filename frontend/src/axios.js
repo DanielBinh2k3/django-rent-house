@@ -34,8 +34,9 @@ function createAxiosResponseInterceptor() {
 					window.confirm(
 						"Your Account need to log-in again to access this feature"
 					);
-					window.location.href = "/login";
 					localStorage.clear();
+					window.location.href = "/login";
+
 					return Promise.reject(error2);
 				})
 				.finally(createAxiosResponseInterceptor);
@@ -45,18 +46,18 @@ function createAxiosResponseInterceptor() {
 
 createAxiosResponseInterceptor();
 
-// function makeRequests() {
-// 	const request1 = axios.get("/api/listing/manage/1000154");
-// 	const request2 = axios.get("/api/listing/manage/1000154");
+function makeRequests() {
+	const request1 = axios.get("/api/listing/manage/1000154");
+	const request2 = axios.get("/api/listing/manage/1000155");
 
-// 	Promise.all([request1, request2])
-// 		.then(([response1, response2]) => {
-// 			console.log("Responses1 :", response1.data);
-// 			console.log("Responses2 :", response2.data);
-// 		})
-// 		.catch((error) => {
-// 			console.log("Error:", error);
-// 		});
-// }
+	Promise.all([request1, request2])
+		.then(([response1, response2]) => {
+			console.log("Responses1 :", response1.data);
+			console.log("Responses2 :", response2.data);
+		})
+		.catch((error) => {
+			console.log("Error:", error);
+		});
+}
 
-// makeRequests();
+makeRequests();

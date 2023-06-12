@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import Listing
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from .extras import delete_realtors_listing_data
+from .extras import delete_user_data
 
 
 # Register your models here.
@@ -11,7 +11,7 @@ class UserAdmin(admin.ModelAdmin):
     using = "default"
     list_display = ('id', 'name', 'email',  )
     list_display_links = ('id', 'name', 'email', )
-    search_fields = ('name', 'email')
+    search_fields = ('id','name', 'email')
     list_per_page = 10
 
     def save_model(self, request, obj, form, change):
@@ -24,7 +24,7 @@ class UserAdmin(admin.ModelAdmin):
         print("Delete the email", email)
         obj.delete(using=self.using)
         print("CALLING TO DELETE THE DATA...")
-        delete_realtors_listing_data(email)
+        delete_user_data(email)
         print("FINISH DELETE")
 
     def get_queryset(self, request):

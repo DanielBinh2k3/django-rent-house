@@ -1,28 +1,19 @@
 from rest_framework import serializers
+from rest_framework.serializers import PrimaryKeyRelatedField
 from base.models import Listing, ListingsImage, Order, City, District
 from django.db import models
 from django.core.files.images import ImageFile
 from django.utils.dateparse import parse_datetime
 import requests
 from unidecode import unidecode
-import re
+import json
 from slugify import slugify
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.core.exceptions import ValidationError
-
-# class DistrictSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = District
-#         fields = '__all__'
-
-
-# class CitySerializer(serializers.ModelSerializer):
-#     districts = DistrictSerializer(many=True, read_only=True)
-
-#     class Meta:
-#         model = City
-#         fields = '__all__'
+from django.contrib.auth import get_user_model
+from base.models import UserAccount
+User = get_user_model()
 
 
 class ListingsImageSerializers(serializers.ModelSerializer):
@@ -31,7 +22,22 @@ class ListingsImageSerializers(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UserAccountSerializer(serializers.ModelSerializer):
+    # image_profile = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email']
+
+    def get_image_profile(self, obj):
+        if obj.image_profile:
+            return obj.image_profile.url
+        else:
+            return None
+
+
 class PropertySerializer(serializers.ModelSerializer):
+    # realtor = UserAccountSerializer(source='user', read_only=True)
     images = ListingsImageSerializers(many=True, read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.ImageField(allow_empty_file=False, use_url=True),
@@ -40,29 +46,26 @@ class PropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Listing
-        fields = ['id', 'title', 'address', 'city', 'district', 'zipcode',
+        fields = ['id',  'title', 'address', 'city', 'district', 'zipcode',
                   'description', 'price', 'area', 'bedrooms', 'bathrooms',
                   'home_type', 'main_photo', 'images',
                   'is_published', 'uploaded_images']
 
+
     def create(self, validated_data):
-        user = self.context['request'].user
-        validated_data['realtor'] = user.email
+        realtor = self.context.get('request').user
+        uploaded_images = validated_data.pop("uploaded_images", [])
+        validated_data['slug'] = slugify(validated_data.get('title'))
 
-        title = validated_data.get('title')
-        validated_data['slug'] = unidecode(title).lower()
-        uploaded_images = validated_data.pop("uploaded_images")
-        district_id = validated_data.pop("district").id
-        city_id = validated_data.get("city").id
-        try:
-            district = District.objects.get(pk=district_id, city_id=city_id)
-            validated_data['district'] = district
-        except District.DoesNotExist:
-            raise ValidationError("Invalid district ID for the selected city")
-        listing = Listing.objects.create(**validated_data)
+        listing = Listing.objects.create(realtor=realtor, **validated_data)
 
-        for image in uploaded_images:
-            ListingsImage.objects.create(listing=listing, image=image)
+        # Create a list of ListingsImage objects to be bulk created
+        images_to_create = [
+            ListingsImage(listing=listing, image=image)
+            for image in uploaded_images
+        ]
+        # Perform bulk create
+        ListingsImage.objects.bulk_create(images_to_create)
 
         clean_title = slugify(listing.title)
         listing.slug = f"{clean_title}-id{listing.id}"
@@ -101,10 +104,13 @@ class PropertySerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['city'] = (instance.city).name
-        ret['district'] = (instance.district).name
+        if instance.city:
+            ret['city'] = instance.city.name
+        if instance.district:
+            ret['district'] = instance.district.name
         ret['slug'] = instance.slug
-        ret['realtor'] = instance.realtor
+        if instance.realtor:
+            ret['realtor'] = instance.realtor.name
         ret['date_created'] = instance.date_created.strftime('%d-%m-%Y')
         ret['view_counts'] = instance.view_counts
         return ret

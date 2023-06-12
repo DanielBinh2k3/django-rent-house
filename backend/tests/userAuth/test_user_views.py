@@ -2,41 +2,36 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
-from django.contrib.auth.models import User
+from rest_framework.test import force_authenticate
 from factories_user import UserAccountFactory
-from user.models import UserAccount
+from base.models import UserAccount
+
 
 class RetrieveUserViewTest(APITestCase):
-    databases = ['users']
-
     def setUp(self):
-        self.client = APIClient()
+        self.user = UserAccountFactory()
+        
 
     def test_retrieve_user_information(self):
-        self.user = UserAccountFactory()
-        self.client.force_authenticate(user=self.user)
         url = reverse('retrieve-user-view')
+        self.client.force_authenticate(self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-    
-    def test_retrieve_user_information_not_found(self):
-        url = reverse('retrieve-user-view')
+
+    def test_retrieve_user_information_not_authenticate(self):
+        url = reverse('retrieve-user-view')  # Assuming 999 is an invalid user ID
         response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
         
 
 class RegisterViewTestCase(APITestCase):
-    databases = ['users']
-
-    def setUp(self):
-        self.client = APIClient()
-
+    
     def test_register_user(self):
         url = reverse('register')
         data = {
             'email': 'test@example.com',
             'password': 'Testpassword@12',
-            're_password': 'Testpassword@12',
             'name': 'Test User',
             'is_realtor': False,
         }
@@ -50,20 +45,22 @@ class RegisterViewTestCase(APITestCase):
         data = {
             'email': 'realtor@example.com',
             'password': 'Testpassword@12',
-            're_password': 'Testpassword@12',
             'name': 'Realtor User',
             'is_realtor': True,
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['success'], 'Realtor account created successfully')
+        
+    def test_create_user_account(self):
+        user_account = UserAccountFactory()  # Create a UserAccount instance with default values
+        self.assertEqual(UserAccount.objects.count(), 1)
 
     def test_invalid_data(self):
         url = reverse('register')
         data = {
             'email': 'invalidemail',
             'password': 'short',
-            're_password': 'short',
             'name': '',
             'is_realtor': False,
         }
@@ -71,7 +68,6 @@ class RegisterViewTestCase(APITestCase):
         self.assertEqual(response.status_code, 400)
     
 class LogInUserViewTestCase(APITestCase):
-    databases=['users']
 
     def setUp(self):
         self.url = reverse('login')
@@ -88,7 +84,7 @@ class LogInUserViewTestCase(APITestCase):
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('token', response.data)
+        self.assertIn('access_token', response.data)
         
     def test_login_failure(self):
         data = {

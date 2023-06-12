@@ -2,10 +2,13 @@ from dateutil.relativedelta import relativedelta
 from django.utils.timezone import now
 from django.db import models
 from django.contrib.auth.models import (
-    AbstractBaseUser, BaseUserManager,
-    PermissionsMixin
+    AbstractBaseUser, 
+    BaseUserManager,
+    PermissionsMixin,
 )
 from django.utils import timezone
+from django.conf import settings
+
 # Create your models here.
 
 
@@ -73,7 +76,11 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-
+    class Meta:
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['name']),
+        ]
 
 class City(models.Model):
     name = models.CharField(max_length=255)
@@ -102,7 +109,7 @@ class Listing(models.Model):
         REJECT = 'Reject'
         OTHER = 'Other'
     # using foreign key
-    realtor = models.EmailField(max_length=255)
+    realtor = models.ForeignKey(UserAccount, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True)
     address = models.CharField(max_length=255)
@@ -121,6 +128,7 @@ class Listing(models.Model):
         upload_to='listings', default='/listings/placeholder.jpg')
 
     is_published = models.BooleanField(default=False)
+    is_available = models.BooleanField(default=False)
     date_created = models.DateTimeField(default=now)
     property_status = models.CharField(
         max_length=10, choices=HomeType.choices, default=PropertyStatus.OTHER)
@@ -131,7 +139,14 @@ class Listing(models.Model):
         if self.main_photo:
             self.main_photo.storage.delete(self.main_photo.name)
         super().delete(*args, **kwargs)
-
+    class Meta:
+        indexes = [
+            models.Index(fields=['realtor']),
+            models.Index(fields=['city']),
+            models.Index(fields=['district']),
+            models.Index(fields=['price']),
+            # Add more indexes for other fields...
+        ]
     def __str__(self):
         return self.title
 # UPload lên chỗ khác

@@ -13,19 +13,19 @@ class UserSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
     password = serializers.CharField(max_length=255, min_length=8)
-    re_password = serializers.CharField(max_length=255, min_length=8)
+    # re_password = serializers.CharField(max_length=255, min_length=8)
     is_realtor = serializers.BooleanField(default=False)
 
     def validate(self, data):
-        if data['password'] != data['re_password']:
-            raise serializers.ValidationError("Passwords do not match")
+        # if data['password'] != data['re_password']:
+        #     raise serializers.ValidationError("Passwords do not match")
         if User.objects.filter(email=data['email']).exists():
             raise serializers.ValidationError(
                 "User with this email already exists")
         return data
 
     def create(self, validated_data):
-        validated_data.pop('re_password')
+        # validated_data.pop('re_password')
         is_realtor = validated_data.pop('is_realtor')
         if is_realtor:
             return User.objects.create_realtor(**validated_data)
@@ -34,25 +34,20 @@ class UserSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    image_profile = serializers.SerializerMethodField()
-
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    email = serializers.EmailField()
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'image_profile']
-
-    def get_image_profile(self, obj):
-        if obj.image_profile:
-            return obj.image_profile.url
-        else:
-            return None
+        fields = ['id', 'name', 'email']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         ret['isRealtor'] = instance.is_realtor
         ret['isAdmin'] = instance.is_staff
-        ret['image_profile'] = self.get_image_profile(
-            instance) or instance.image_url
-        ret['token'] = str(RefreshToken.for_user(instance).access_token)
+        ret['image_profile'] = instance.image_url
+        ret['access_token'] = str(RefreshToken.for_user(instance).access_token)
+        ret['refresh_token'] = str(RefreshToken.for_user(instance))
         return ret
 
 
