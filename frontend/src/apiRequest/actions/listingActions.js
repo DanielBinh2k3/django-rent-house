@@ -203,7 +203,9 @@ export const searchListing = (params) => async (dispatch, getState) => {
 			},
 		};
 
-		const { data } = await axios.get(`/api/listing/search`, params, config);
+		const { data } = await axios.get(`/api/listing/get-listings`, null, {
+			params,
+		});
 
 		dispatch({ type: LISTING_SEARCH_SUCCESS, payload: data });
 	} catch (error) {
