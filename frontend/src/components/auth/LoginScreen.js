@@ -6,7 +6,7 @@ import Loader from "../common/Loader";
 import { login } from "../../apiRequest/actions/userActions";
 import { Form } from "react-bootstrap";
 import jwt_decode from "jwt-decode";
-import TwitterLogin from "react-twitter-login";
+// import TwitterLogin from "react-twitter-login";
 import "./login.css";
 
 const LoginScreen = () => {
@@ -76,7 +76,7 @@ const LoginScreen = () => {
 				"1036092188931-h0uog1a6qkqsljcjemdpeoa60vs9hc7r.apps.googleusercontent.com",
 			callback: handleGoogleCallbackResponse,
 		});
-	}, [handleGoogleCallbackResponse]);
+	}, []);
 	const authHandler = (error, data) => {
 		if (error) {
 			console.log("Twitter login error:", error);
@@ -161,7 +161,7 @@ const LoginScreen = () => {
 				handleFBCallbackResponse(response);
 			}
 		});
-	}, [handleFBCallbackResponse]);
+	}, []);
 
 	const handleFacebookSignIn = () => {
 		FB.login(
@@ -242,7 +242,7 @@ const LoginScreen = () => {
 												onClick={handleFacebookSignIn}>
 												<i className="fab fa-facebook-f fa-lg px-2"></i>
 											</div>
-											<TwitterLogin
+											{/* <TwitterLogin
 												authCallback={authHandler}
 												consumerKey="FOyTkyzQijlkbms48QhE5L45Z"
 												consumerSecret="j3QJXpirLXJ57ujs1gaAPFe6wEp9G4Xq7au0dezoGOqZX567Vg"
@@ -250,7 +250,7 @@ const LoginScreen = () => {
 												<div className="btn btn-dark">
 													<i className="fab fa-twitter fa-lg px-2" />
 												</div>
-											</TwitterLogin>
+											</TwitterLogin> */}
 											<div
 												className="btn btn-dark "
 												onClick={handleGoogleSignIn}>
