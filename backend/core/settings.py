@@ -105,7 +105,11 @@ DATABASES = {
     },
 }
 
+import dj_database_url
 
+DATABASES = {
+    'default': dj_database_url.config(default='postgres://postgres:123456@db:5432/house_owner')
+}
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -193,8 +197,8 @@ AUTH_USER_MODEL = 'base.UserAccount'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 
 
 # get the current date in the format 'YYYY-MM-DD'
@@ -259,27 +263,4 @@ LOGGING = {
         }
     }
 }
-# get the logger for the project
-logger = logging.getLogger(__name__)
-import os
 
-# Check if running in a CI/CD environment
-IS_CI_ENVIRONMENT = os.getenv('CI') == 'true'
-
-# Conditionally configure logging
-if IS_CI_ENVIRONMENT:
-    # Configure logging for CI/CD environment
-    LOGGING_CONFIG = None  # Disable Django's default logging configuration
-    LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-            },
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'INFO',
-        },
-    }
