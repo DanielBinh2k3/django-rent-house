@@ -1,15 +1,15 @@
 stages:
   - build
   - test
-  - deploy
+  # - deploy
 
-variables:
-  DB_ENGINE: "django.db.backends.postgresql"
-  DB_NAME: "house_owner"
-  DB_USER: "postgres"
-  DB_PASSWORD: "123456"
-  DB_HOST: "db"
-  DB_PORT: 5432
+# variables:
+#   DB_ENGINE: "django.db.backends.postgresql"
+#   DB_NAME: "house_owner"
+#   DB_USER: "postgres"
+#   DB_PASSWORD: "123456"
+#   DB_HOST: "db"
+#   DB_PORT: 5432
 
 build_backend:
   stage: build
@@ -20,8 +20,8 @@ build_backend:
     - apt-get update -qy
     - pip install --upgrade pip  # Upgrade pip
     - pip install --no-cache-dir -r requirements.txt
-    - python manage.py makemigrations
-    - python manage.py migrate  # Apply database migrations
+    # - python manage.py makemigrations
+    # - python manage.py migrate  # Apply database migrations
 
 build_frontend:
   stage: build
@@ -31,3 +31,12 @@ build_frontend:
     - npm install -g npm@
     - npm install --force
     - npm run build  # Build the React app
+
+test_backend:
+  stage: test
+  image: python:3.7
+  script:
+    - cd backend
+    - pip install --upgrade pip
+    - pip install --no-cache-dir -r requirements.txt
+    - python manage.py test
