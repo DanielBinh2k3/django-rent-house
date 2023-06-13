@@ -4,7 +4,12 @@ stages:
   - deploy
 
 variables:
-  DATABASE_URL: "postgresql://postgres:123456@db:5432/house_owner"
+  DB_ENGINE: "django.db.backends.postgresql"
+  DB_NAME: "house_owner"
+  DB_USER: "postgres"
+  DB_PASSWORD: "123456"
+  DB_HOST: "db"
+  DB_PORT: 5432
 
 build_backend:
   stage: build
@@ -12,13 +17,10 @@ build_backend:
   script:
     - cd backend
     - pip install --upgrade pip  # Upgrade pip
-    - pip3 install virtualenv
-    - virtualenv -p python3 venv
-    - source venv/bin/activate
     - pip install --no-cache-dir -r requirements.txt
-    # Set up and run tests
-    - python3 manage.py makemigrations 
-    - python3 manage.py migrate
+    - echo "DATABASE_URL=$DB_ENGINE://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME" >> .env
+    - python manage.py collectstatic --noinput  # Collect static files without interactive prompts
+    - python manage.py migrate  # Apply database migrations
 
 build_frontend:
   stage: build
