@@ -34,7 +34,7 @@ build_frontend:
 
 test_backend:
   stage: test
-  image: python:3.7
+  image: python:latest
   script:
     - cd backend
     - pip install --upgrade pip
