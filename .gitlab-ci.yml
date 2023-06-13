@@ -18,7 +18,7 @@ build_backend:
     - cd backend
     - export DATABASE_URL=$DB_ENGINE://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME
     - apt-get update -qy
-    - apt-get install -y python-dev python-pip
+    - pip install --upgrade pip  # Upgrade pip
     - pip install --no-cache-dir -r requirements.txt
     - python manage.py makemigrations
     - python manage.py migrate  # Apply database migrations
