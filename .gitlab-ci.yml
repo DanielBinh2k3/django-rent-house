@@ -1,0 +1,20 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build_backend:
+  stage: build
+  script:
+    - cd backend
+    - pip install --no-cache-dir -r requirements.txt
+    - python manage.py collectstatic  # Collect static files
+    - python manage.py migrate  # Apply database migrations
+
+build_frontend:
+  stage: build
+  script:
+    - cd frontend
+    - npm install -g npm@
+    - npm install --force
+    - npm run build  # Build the React app
