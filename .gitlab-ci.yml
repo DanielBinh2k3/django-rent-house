@@ -5,6 +5,7 @@ stages:
 
 build_backend:
   stage: build
+  image: python:3
   script:
     - cd backend
     - pip install --no-cache-dir -r requirements.txt
@@ -13,6 +14,7 @@ build_backend:
 
 build_frontend:
   stage: build
+  image: node:14
   script:
     - cd frontend
     - npm install -g npm@
