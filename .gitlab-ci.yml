@@ -3,6 +3,9 @@ stages:
   - test
   - deploy
 
+variables:
+  DATABASE_URL: "postgresql://postgres:123456@db:5432/house_owner"
+
 build_backend:
   stage: build
   image: python:3
