@@ -12,9 +12,13 @@ build_backend:
   script:
     - cd backend
     - pip install --upgrade pip  # Upgrade pip
+    - pip3 install virtualenv
+    - virtualenv -p python3 venv
+    - source venv/bin/activate
     - pip install --no-cache-dir -r requirements.txt
-    - python manage.py collectstatic --noinput  # Collect static files without interactive prompts
-    - python manage.py migrate  # Apply database migrations
+    # Set up and run tests
+    - python3 manage.py makemigrations 
+    - python3 manage.py migrate
 
 build_frontend:
   stage: build
