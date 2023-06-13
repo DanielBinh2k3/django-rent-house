@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import Heading from "../../common/Heading";
 import "./hero.css";
+import { searchListing } from "../../../apiRequest/actions/listingActions";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useState({
     city: "",
     propertyType: "",
@@ -21,7 +24,8 @@ const Hero = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     // Dispatch the searchListing action with the searchParams
-    // dispatch(searchListing(searchParams));
+    dispatch(searchListing(searchParams));
+    navigate('/search')
   };
 
   return (
@@ -42,9 +46,9 @@ const Hero = () => {
                 onChange={handleInputChange}
               >
                 <option value="">Select City/Street</option>
-                <option value="city1">City 1</option>
-                <option value="city2">City 2</option>
-                <option value="city3">City 3</option>
+                <option value="1">City 1</option>
+                <option value="2">City 2</option>
+                <option value="3">City 3</option>
               </select>
             </div>
             <div className="box">

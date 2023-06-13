@@ -3,11 +3,11 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  height: 90vh;
+  height: 70vh;
   width: 100%;
 }
 .hero .container {
-  padding-top: 15%;
+  padding-top: 10%;
 }
 .hero h1 {
   color: #fff;
