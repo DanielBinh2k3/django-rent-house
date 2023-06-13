@@ -10,7 +10,7 @@ build_backend:
     - cd backend
     - pip install --upgrade pip  # Upgrade pip
     - pip install --no-cache-dir -r requirements.txt
-    # - python manage.py collectstatic --noinput  # Collect static files without interactive prompts
+    - python manage.py collectstatic --noinput  # Collect static files without interactive prompts
     - python manage.py migrate  # Apply database migrations
 
 build_frontend:
