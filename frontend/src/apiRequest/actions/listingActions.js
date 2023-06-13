@@ -65,9 +65,6 @@ export const getListingDetailsPk = (pk) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_DETAILS_REQUEST });
 
-		const {
-			userLogin: { userInfo },
-		} = getState();
 		const access_token = localStorage.getItem("access_token");
 		const config = {
 			headers: {
@@ -95,14 +92,12 @@ export const getListingDetailsPk = (pk) => async (dispatch, getState) => {
 export const deleteListing = (id) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_DELETE_REQUEST });
-		const {
-			userLogin: { userInfo },
-		} = getState();
+		const access_token = localStorage.getItem("access_token");
 
 		const config = {
 			headers: {
 				"Content-type": "application/json",
-				Authorization: `Bearer ${userInfo.access_token}`,
+				Authorization: `Bearer ${access_token}`,
 			},
 		};
 
@@ -124,13 +119,11 @@ export const deleteListing = (id) => async (dispatch, getState) => {
 export const createListing = (listingData) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_CREATE_REQUEST });
-		const {
-			userLogin: { userInfo },
-		} = getState();
+		const access_token = localStorage.getItem("access_token");
 		const config = {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: `Bearer ${userInfo.access_token}`,
+				Authorization: `Bearer ${access_token}`,
 			},
 		};
 		const { data } = await axios.post(
@@ -156,14 +149,11 @@ export const updateListing = (pk, listing) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_UPDATE_REQUEST });
 
-		const {
-			userLogin: { userInfo },
-		} = getState();
-
+		const access_token = localStorage.getItem("access_token");
 		const config = {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: `Bearer ${userInfo.access_token}`,
+				Authorization: `Bearer ${access_token}`,
 			},
 		};
 
@@ -191,15 +181,11 @@ export const updateListing = (pk, listing) => async (dispatch, getState) => {
 export const searchListing = (params) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_SEARCH_REQUEST });
-
-		const {
-			userLogin: { userInfo },
-		} = getState();
-
+		const access_token = localStorage.getItem("access_token");
 		const config = {
 			headers: {
 				"Content-Type": "multipart/form-data",
-				Authorization: `Bearer ${userInfo.access_token}`,
+				Authorization: `Bearer ${access_token}`,
 			},
 		};
 

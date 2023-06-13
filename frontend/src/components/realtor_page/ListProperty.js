@@ -24,7 +24,7 @@ function PropertyList() {
 			navigate("/login");
 		}
 		dispatch(getPublicListings());
-	}, [dispatch]);
+	}, [dispatch, navigate, userInfo]);
 
 	const handleEditClick = (propertyId) => {
 		setShowModal((prevShowModal) => ({
@@ -127,7 +127,7 @@ function PropertyList() {
 						properties.results.map((property) => (
 							<div className="property clearfix" key={property.id}>
 								<div className="property-media">
-									<img src={property.main_photo} alt="main photo" />
+									<img src={property.main_photo} alt="main img" />
 								</div>
 								<div className="property-info row">
 									<a

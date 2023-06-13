@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import Heading from "../../common/Heading";
 import "./hero.css";
 import { searchListing } from "../../../apiRequest/actions/listingActions";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const dispatch = useDispatch();

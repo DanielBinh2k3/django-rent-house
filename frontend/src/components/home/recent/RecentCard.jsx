@@ -12,7 +12,7 @@ const RecentCard = () => {
   const navigate = useNavigate();
   const listingList = useSelector((state) => state.listingList);
   const { error, loading, listings } = listingList;
-  var storedFavorites = JSON.parse(localStorage.getItem("favoriteProperties"))
+  // var storedFavorites = JSON.parse(localStorage.getItem("favoriteProperties"))
 
   useEffect(() => {
     dispatch(getPublicListings());

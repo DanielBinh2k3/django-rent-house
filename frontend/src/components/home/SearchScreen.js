@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../common/Loader";
 import Message1 from "../common/Message1";
@@ -11,7 +11,6 @@ const SearchScreen = () => {
 	const navigate = useNavigate();
 	const listingSearch = useSelector((state) => state.listingSearch);
 	const { error, loading, listings } = listingSearch;
-	var storedFavorites = JSON.parse(localStorage.getItem("favoriteProperties"));
 
 	useEffect(() => {
 		console.log(error, loading, listings);

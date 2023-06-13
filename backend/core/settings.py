@@ -259,3 +259,25 @@ LOGGING = {
 }
 # get the logger for the project
 logger = logging.getLogger(__name__)
+import os
+
+# Check if running in a CI/CD environment
+IS_CI_ENVIRONMENT = os.getenv('CI') == 'true'
+
+# Conditionally configure logging
+if IS_CI_ENVIRONMENT:
+    # Configure logging for CI/CD environment
+    LOGGING_CONFIG = None  # Disable Django's default logging configuration
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    }
