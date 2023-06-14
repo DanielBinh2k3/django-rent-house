@@ -36,7 +36,7 @@ header .toggle {
 }
 .dropdown-menu {
   position: absolute;
-  top: 45px;
+  top: 25px;
   right: 0;
   background-color: #fff;
   border: 1px solid #dadce0;

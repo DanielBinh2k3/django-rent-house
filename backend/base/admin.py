@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Listing
+from .models import Listing, Order
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from .extras import delete_user_data
@@ -84,3 +84,10 @@ class ListingAdmin(admin.ModelAdmin):
 
 admin.site.register(Listing, ListingAdmin)
 
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['listing', 'renter_name', 'renter_email', 'date_in', 'date_out', 'months_estimate', 'total_price']
+    search_fields = ['renter_name', 'renter_email']
+    list_filter = ['date_in', 'date_out']
+
+admin.site.register(Order, OrderAdmin)

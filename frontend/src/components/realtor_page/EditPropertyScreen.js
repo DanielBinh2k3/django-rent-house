@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Form, Col, Row } from "react-bootstrap";
+import { Button, Form, Row, Col, Modal } from "react-bootstrap";
+import FormContainer from "../common/FormContainer";
 import { useDispatch, useSelector } from "react-redux";
+import axios, { formToJSON } from "axios";
 import {
+	createListing,
 	getListingDetailsPk,
 	updateListing,
 } from "../../apiRequest/actions/listingActions";
+import { useNavigate } from "react-router-dom";
 import Loader from "../common/Loader";
 import Message1 from "../common/Message1";
-import { useNavigate } from "react-router-dom";
-import { formToJSON } from "axios";
 
 const EditPropertyScreen = ({ pk, showModal, handleClose }) => {
 	const dispatch = useDispatch();

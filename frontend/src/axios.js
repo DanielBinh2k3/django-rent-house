@@ -44,7 +44,9 @@ function createAxiosResponseInterceptor() {
 				})
 				.catch((error2) => {
 					console.log("Error:" + error2);
-
+					if (error2.status === 400) {
+						return axios(error.error2.config);
+					}
 					// Prompt the user to log in again
 					window.confirm(
 						"Your account needs to log in again to access this feature"

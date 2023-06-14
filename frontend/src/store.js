@@ -19,6 +19,12 @@ import {
 	listingUpdateReducer,
 	listingSearchReducer,
 } from "./apiRequest/reducers/listingReducers";
+import {
+	orderCreateReducer,
+	orderDetailsReducers,
+	orderListMyReducer,
+	orderListReducer,
+} from "./apiRequest/reducers/orderReducers";
 
 const reducer = combineReducers({
 	userLogin: userLoginReducer,
@@ -36,6 +42,11 @@ const reducer = combineReducers({
 	listingCreate: listingCreateReducer,
 	listingUpdate: listingUpdateReducer,
 	listingSearch: listingSearchReducer,
+
+	orderCreate: orderCreateReducer,
+	orderDetails: orderDetailsReducers,
+	orderListMy: orderListMyReducer,
+	orderList: orderListReducer,
 });
 
 const userInfoFromStorage = localStorage.getItem("userInfo")
