@@ -32,7 +32,8 @@ const SearchScreen = () => {
 				) : (
 					<div className="content grid3 mtop">
 						{listings &&
-							listings.map((listing) => (
+							listings.results &&
+							listings.results.map((listing) => (
 								<div className="box shadow" key={listing.id}>
 									<div
 										className="img"

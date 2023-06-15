@@ -22,6 +22,7 @@ import Loader from "../common/Loader";
 import Message1 from "../common/Message1";
 import OrderCreateScreen from "../order/OrderCreateScreen";
 import calculateMonthEstimate from "./CalcMonthDiff";
+import MyMapComponent from "./MyMap";
 
 const PropertyScreen = () => {
 	const dispatch = useDispatch();
@@ -41,6 +42,8 @@ const PropertyScreen = () => {
 	};
 	useEffect(() => {
 		dispatch(getListingDetails(slug));
+		// const address = listingDetail.address;
+		// console.log(address);
 	}, [dispatch, slug]);
 
 	const [selectionRange, setSelectionRange] = useState({
@@ -411,7 +414,13 @@ const PropertyScreen = () => {
 												(without tax)
 											</div>
 											<div className="col-md-3">
-												<b>${parseInt(listingDetail.price * 1.21)}</b>
+												<b>
+													$
+													{parseInt(
+														parseInt(month) * listingDetail.price +
+															listingDetail.price * 0.21
+													)}
+												</b>
 											</div>
 										</div>
 									</div>
@@ -423,7 +432,7 @@ const PropertyScreen = () => {
 							<div className="info-title">
 								<h4>Where you'll sleep</h4>
 							</div>
-							<img src="./images/map.png"></img>
+							<MyMapComponent />
 						</div>
 						<div style={horizontalLine}></div>
 						{/* Things To Know */}

@@ -25,7 +25,7 @@ from base.serializers.user_serializers import UserSerializer, SetNewPasswordSeri
     ResetPasswordEmailRequestSerializer, EmailFormSerializer, PasswordResetSerializer,\
     LogInSerializer, UserProfileSerializer
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, PermissionDenied
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 import logging
@@ -101,37 +101,22 @@ class UserProfileView(generics.GenericAPIView):
             )
 
     @transaction.atomic
-    def put(self, request, pk, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         try:
-            user = request.user
-            user_model = User.objects.get(id=pk)
-            # Get the uploaded image file from the request data
-            image_profile_file = request.data.get('image_profile')
-
-            # If an image file was uploaded, save it to the User model
-            if image_profile_file:
-                user.image_profile.save(
-                    image_profile_file.name, File(image_profile_file))
-
-            # Create a new dictionary with updated values
-            new_data = dict(request.data)
-            new_data.setdefault('name', user.name)
-            new_data.setdefault('email', user.email)
-            new_data.pop('image_profile', None)
-
-            serializer = self.get_serializer(user, data=new_data)
-
+            print(request.data['id'])
+            print(request.user.id)
+            if int(request.user.id) != int(request.data['id']):
+                raise PermissionDenied
+            serializer = self.serializer_class(request.user, data=request.data)
             if serializer.is_valid():
-                user_model.save()
                 serializer.save()
-
-                logger.info(f'Profile updated for user: {user.email}')
-                return Response(serializer.data)
+                logger.info(f'Profile updated for user: {request.user.email}')
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except ValidationError as e:
+        except PermissionDenied as e:
             return Response(
-                {'error': f'{e}'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error:': f'{e}'},
+                status=status.HTTP_401_UNAUTHORIZED
             )
         except Exception as e:
             logger.error(f'Error updating user profile: {str(e)}')

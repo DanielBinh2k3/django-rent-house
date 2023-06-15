@@ -174,13 +174,6 @@ export const updateListing = (pk, listing) => async (dispatch, getState) => {
 export const searchListing = (params) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_SEARCH_REQUEST });
-		const access_token = localStorage.getItem("access_token");
-		const config = {
-			headers: {
-				"Content-Type": "multipart/form-data",
-				Authorization: `Bearer ${access_token}`,
-			},
-		};
 
 		const { data } = await axios.get(`/api/listing/get-listings`, null, {
 			params,

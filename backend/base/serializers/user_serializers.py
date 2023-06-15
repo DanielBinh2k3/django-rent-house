@@ -36,16 +36,27 @@ class UserSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
-    email = serializers.EmailField()
+    phone_number = serializers.CharField()
+    image_profile = serializers.ImageField()
     class Meta:
         model = User
-        fields = ['id', 'name', 'email']
+        fields = [ 'id','phone_number', 'image_profile', 'name',]
 
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
+        instance.image_profile = validated_data.get('image_profile', instance.image_profile)
+        instance.save()
+        return instance
+    
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        ret['email'] = instance.email
         ret['isRealtor'] = instance.is_realtor
         ret['isAdmin'] = instance.is_staff
-        ret['image_profile'] = instance.image_url
+        if not instance.image_profile:
+            ret['image_profile'] = instance.image_url
+        ret['phone_number'] = instance.phone_number
         ret['access_token'] = str(RefreshToken.for_user(instance).access_token)
         ret['refresh_token'] = str(RefreshToken.for_user(instance))
         return ret

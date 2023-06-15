@@ -22,7 +22,6 @@ import FavoriteScreen from "./components/profile/FavoriteScreen";
 import SearchScreen from "./components/home/SearchScreen";
 import OrderScreenNormal from "./components/order/OrderScreenNormal";
 import OrderScreenRealtor from "./components/order/OrderScreenRealtor";
-import Map from "./components/property/map";
 
 function App() {
 	return (
@@ -32,7 +31,6 @@ function App() {
 				<div id="google-signin-prompt" className="google-signin-prompt" />
 				<Routes>
 					<Route exact path="/" element={<Home />} />
-					<Route exact path="/map" element={<Map />} />
 					<Route exact path="/order" element={<OrderScreenNormal />} />
 					<Route exact path="/manage/orders" element={<OrderScreenRealtor />} />
 					<Route exact path="/search" element={<SearchScreen />} />
@@ -62,5 +60,4 @@ function App() {
 		</>
 	);
 }
-
 export default App;

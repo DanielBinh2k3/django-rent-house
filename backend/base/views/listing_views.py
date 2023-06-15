@@ -19,6 +19,7 @@ import json
 from base.pagination import CustomPageNumberPagination
 from unidecode import unidecode
 import re
+from rest_framework import exceptions
 from django.contrib.postgres.search import SearchVector, SearchQuery
 logger = logging.getLogger(__name__)
 
@@ -126,12 +127,15 @@ class ManageListingView(SearchListingView):
             # không ảnh hưởng nên k thêm
             if pk != None:
                 listing = Listing.objects.select_related().get(id=pk)
+                self.check_object_permissions(request, listing)
                 serializer = PropertySerializer(listing)
             else:
                 serializer = self.filter_listings(request)
 
-            return Response({'listings': serializer.data}, status=status.HTTP_200_OK)
-        
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except exceptions.PermissionDenied as e:
+            logger.exception(str(e))
+            return Response({'error': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
         except Exception as e:
             logger.exception(str(e))
             return Response({'error': 'An error occurred while retrieving listings.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -347,10 +351,9 @@ class OrderListingNormalView(APIView):
             required=['listing', 'renter_phone', 'date_in', 'date_out']
         ),
     )
-    @transaction.atomic
     def post(self, request):
         try:
-            with transaction.atomic():
+            # with transaction.atomic():
                 serializer = OrderSerializer(
                     data=request.data, context={'request': request})
                 if serializer.is_valid():
@@ -372,14 +375,14 @@ class OrderListingNormalView(APIView):
             404: "Order not found.",
         },
     )
-    @transaction.atomic
+    # @transaction.atomic
     def put(self, request, pk):
         try:
             with transaction.atomic():
                 order = Order.objects.get(pk=pk, listing__realtor=request.user)
                 serializer = OrderSerializer(order, data=request.data)
                 if serializer.is_valid():
-                    serializer.save()
+                    serializer.save() 
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Order.DoesNotExist:
@@ -397,7 +400,7 @@ class OrderListingNormalView(APIView):
             404: "Order not found.",
         },
     )
-    @transaction.atomic
+    # @transaction.atomic
     def delete(self, request, pk):
         try:
             with transaction.atomic():
