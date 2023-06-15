@@ -34,7 +34,7 @@ function createAxiosResponseInterceptor() {
 				)
 				.then((response) => {
 					console.log(response);
-
+					localStorage.setItem("access_token", response.data.access);
 					// Update the Authorization header with the new access token
 					error.response.config.headers["Authorization"] =
 						"Bearer " + response.data.access;

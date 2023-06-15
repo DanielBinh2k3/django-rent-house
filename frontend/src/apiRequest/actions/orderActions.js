@@ -31,14 +31,14 @@ export const createOrder = (order) => async (dispatch) => {
 			payload: data,
 		});
 	} catch (error) {
-		// const message =
-		// 	error.response && error.response.data.message
-		// 		? error.response.data.message
-		// 		: error.message;
-		// dispatch({
-		// 	type: ORDER_CREATE_FAIL,
-		// 	payload: message,
-		// });
+		const message =
+			error.response && error.response.data.message
+				? error.response.data.message
+				: error.message;
+		dispatch({
+			type: ORDER_CREATE_FAIL,
+			payload: message,
+		});
 		console.log(error);
 	}
 };

@@ -65,14 +65,7 @@ export const getListingDetailsPk = (pk) => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LISTING_DETAILS_REQUEST });
 
-		const access_token = localStorage.getItem("access_token");
-		const config = {
-			headers: {
-				"Content-type": "application/json",
-				Authorization: `Bearer ${access_token}`,
-			},
-		};
-		const { data } = await axios.get(`/api/listing/manage/${pk}`, config);
+		const { data } = await axios.get(`/api/listing/manage/${pk}`);
 
 		dispatch({
 			type: LISTING_DETAILS_SUCCESS,

@@ -65,44 +65,6 @@ const OrderCreateScreen = ({
 			return updatedFormData;
 		});
 	};
-	const order = {
-		_id: "123456789", // Example order ID
-		user: {
-			name: "John Doe",
-			email: "johndoe@example.com",
-		},
-		shippingAddress: {
-			address: "123 Main St",
-			city: "New York",
-			postalCode: "10001",
-			country: "United States",
-		},
-		isDelivered: false,
-		deliveredAt: null,
-		paymentMethod: "PayPal",
-		isPaid: false,
-		paidAt: null,
-		orderItems: [
-			{
-				name: "Product 1",
-				image: "product1.jpg",
-				price: 10.99,
-				qty: 2,
-				product: "product1_id",
-			},
-			{
-				name: "Product 2",
-				image: "product2.jpg",
-				price: 19.99,
-				qty: 1,
-				product: "product2_id",
-			},
-		],
-		itemsPrice: 41.97, // Total price of all items
-		shippingPrice: 5.0,
-		taxPrice: 3.14,
-		totalPrice: 50.11, // Total order price including shipping and tax
-	};
 	const handleNextStep = (event) => {
 		event.preventDefault();
 		setStep((prevStep) => prevStep + 1);
@@ -134,21 +96,21 @@ const OrderCreateScreen = ({
 		dispatch(createOrder(formOrder));
 	};
 
-	// useEffect(() => {
-	// 	let interval = null;
-	// 	if (success) {
-	// 		interval = setInterval(() => {
-	// 			setCountdown((prevCountdown) => prevCountdown - 1);
-	// 		}, 1000);
-	// 	}
-	// 	return () => clearInterval(interval);
-	// }, [success]);
+	useEffect(() => {
+		let interval = null;
+		if (success) {
+			interval = setInterval(() => {
+				setCountdown((prevCountdown) => prevCountdown - 1);
+			}, 3000);
+		}
+		return () => clearInterval(interval);
+	}, [success]);
 
-	// useEffect(() => {
-	// 	if (countdown === 0) {
-	// 		navigate("/");
-	// 	}
-	// }, [countdown, navigate]);
+	useEffect(() => {
+		if (countdown === 0) {
+			navigate("/");
+		}
+	}, [countdown, navigate]);
 
 	return (
 		<>
@@ -159,7 +121,12 @@ const OrderCreateScreen = ({
 				<Modal.Body>
 					{loading && <Loader />}
 					{error && <Message1 variant="danger">{error}</Message1>}
-
+					{success && (
+						<Message1 variant="success">
+							You created success fully. You will be directed to MyOrder in ...
+							{countdown} seconds
+						</Message1>
+					)}
 					{step === 1 && (
 						<FormContainer>
 							<Form style={{ height: "500px" }}>
@@ -283,68 +250,51 @@ const OrderCreateScreen = ({
 					{step === 3 && (
 						<Form style={{ marginBottom: "3rem" }} onSubmit={submitHandler}>
 							<div>
-								<h2>Order: {order._id}</h2>
 								<Row>
 									<Col md={8}>
 										<ListGroup variant="flush">
 											<ListGroup.Item>
-												<h2>Shipping</h2>
+												<h2>Order Details</h2>
 												<p>
-													Name: <strong>{order.user.name}</strong>
+													Name: <strong>{formData.renterName}</strong>
 												</p>
 												<p>
 													Email:{" "}
 													<strong>
-														<a href={`mailto:${order.user.email}`}>
-															{order.user.email}
+														<a href={`mailto:${formData.renterEmail}`}>
+															{formData.renterEmail}
 														</a>
 													</strong>
 												</p>
 												<p>
-													<strong>Shipping: </strong>
-													{order.shippingAddress.address},{" "}
-													{order.shippingAddress.city}
-													{"  "}
-													{order.shippingAddress.postalCode},{"  "}
-													{order.shippingAddress.country}
+													Contact:{" "}
+													<strong>
+														<a href={`tel:${formData.renterPhone}`}>
+															{formData.renterPhone}
+														</a>
+													</strong>
 												</p>
-												{order.isDelivered ? (
-													<Message1 variant="success">
-														Delivered on {order.deliveredAt}
-													</Message1>
-												) : (
-													<Message1 variant="warning">Not Delivered</Message1>
-												)}
 											</ListGroup.Item>
 
 											<ListGroup.Item>
 												<h2>Order Items</h2>
 												<ListGroup variant="flush">
-													{order.orderItems.map((item, index) => (
-														<ListGroup.Item key={index}>
+													{
+														<ListGroup.Item key={listing.id}>
+															<Link to={`/${listing.slug}`}>
+																{listing.title}
+															</Link>
+
 															<Row>
-																<Col md={1}>
-																	<Image
-																		src={item.image}
-																		alt={item.name}
-																		fluid
-																		rounded
-																	/>
-																</Col>
-
-																<Col>
-																	<Link to={`/product/${item.product}`}>
-																		{item.name}
-																	</Link>
-																</Col>
-
 																<Col md={4}>
-																	{item.qty} X ${item.price} = $
-																	{(item.qty * item.price).toFixed(2)}
+																	<img
+																		src={listing.main_photo}
+																		alt={listing.name}
+																	/>
 																</Col>
 															</Row>
 														</ListGroup.Item>
-													))}
+													}
 												</ListGroup>
 											</ListGroup.Item>
 										</ListGroup>
@@ -360,20 +310,25 @@ const OrderCreateScreen = ({
 												<ListGroup.Item>
 													<Row>
 														<Col>Items:</Col>
-														<Col>${order.itemsPrice}</Col>
+														<Col>${listing.price}</Col>
 													</Row>
 												</ListGroup.Item>
 												<ListGroup.Item>
 													<Row>
 														<Col>Tax:</Col>
-														<Col>${order.taxPrice}</Col>
+														<Col>${listing.price * 0.01}</Col>
 													</Row>
 												</ListGroup.Item>
-
+												<ListGroup.Item>
+													<Row>
+														<Col>Other fee:</Col>
+														<Col>${listing.price * 0.2}</Col>
+													</Row>
+												</ListGroup.Item>
 												<ListGroup.Item>
 													<Row>
 														<Col>Total:</Col>
-														<Col>${order.totalPrice}</Col>
+														<Col>${totalPrice}</Col>
 													</Row>
 												</ListGroup.Item>
 

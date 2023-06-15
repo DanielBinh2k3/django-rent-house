@@ -46,17 +46,14 @@ export const login = (email, password) => async (dispatch) => {
 			type: USER_LOGIN_SUCCESS,
 			payload: data,
 		});
-
+		const access_token = JSON.stringify(data["access_token"]).replace(/"/g, "");
 		localStorage.clear();
-		localStorage.setItem(
-			"access_token",
-			JSON.stringify(data["access_token"]).replace(/"/g, "")
-		);
+		localStorage.setItem("access_token", access_token);
 		localStorage.setItem(
 			"refresh_token",
 			JSON.stringify(data["refresh_token"]).replace(/"/g, "")
 		);
-		axios.defaults.headers.common["Authorization"] = `Bearer ${data["access"]}`;
+		axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 		localStorage.setItem("userInfo", JSON.stringify(data));
 	} catch (error) {
 		dispatch({
@@ -267,21 +264,14 @@ export const updateUser = (user) => async (dispatch, getState) => {
 		dispatch({
 			type: USER_UPDATE_REQUEST,
 		});
-		const {
-			userLogin: { userInfo },
-		} = getState();
-
+		const access_token = localStorage.getItem("access_token");
 		const config = {
 			headers: {
-				"Content-type": "application/json",
-				Authorization: `Bearer ${userInfo.token}`,
+				"Content-Type": "multipart/form-data",
+				Authorization: `Bearer ${access_token}`,
 			},
 		};
-		const { data } = await axios.put(
-			`auth/user/update/${user._id}`,
-			user,
-			config
-		);
+		const { data } = await axios.put(`/auth/user/profile`, user, config);
 		dispatch({
 			type: USER_UPDATE_SUCCESS,
 		});

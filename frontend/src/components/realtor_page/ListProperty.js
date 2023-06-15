@@ -31,13 +31,19 @@ function PropertyList() {
 			...prevShowModal,
 			[propertyId]: true,
 		}));
+		console.log(propertyId);
+		console.log(showModal);
 	};
+	useEffect(() => {
+		console.log(showModal);
+	}, [showModal]);
 
 	const handleClose = (propertyId) => {
 		setShowModal((prevShowModal) => ({
 			...prevShowModal,
 			[propertyId]: false,
 		}));
+		console.log("delete");
 	};
 
 	const handleSearch = (e) => {

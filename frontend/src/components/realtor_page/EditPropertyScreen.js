@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form, Row, Col, Modal } from "react-bootstrap";
-import FormContainer from "../common/FormContainer";
+import { Modal, Button, Form, Col, Row } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import axios, { formToJSON } from "axios";
 import {
-	createListing,
 	getListingDetailsPk,
 	updateListing,
 } from "../../apiRequest/actions/listingActions";
-import { useNavigate } from "react-router-dom";
 import Loader from "../common/Loader";
 import Message1 from "../common/Message1";
+import { useNavigate } from "react-router-dom";
+import { formToJSON } from "axios";
 
 const EditPropertyScreen = ({ pk, showModal, handleClose }) => {
 	const dispatch = useDispatch();
@@ -18,13 +16,12 @@ const EditPropertyScreen = ({ pk, showModal, handleClose }) => {
 	const listingDetail = useSelector((state) => state.listingDetails);
 	const { error, loading, listing } = listingDetail;
 	const listingUpdate = useSelector((state) => state.listingUpdate);
-	// const {
-	// 	error: errorUpdate,
-	// 	loading: loadingUpdate,
-	// 	listing: updatedlisting,
-	// 	success,
-	// } = listingUpdate;
-	const { loading: loadingUpdate, success } = listingUpdate;
+	const {
+		error: errorUpdate,
+		loading: loadingUpdate,
+		listing: updatedlisting,
+		success,
+	} = listingUpdate;
 	const [main_photo, setMainPhoto] = useState(null);
 	const [uploaded_images, setUploadedImages] = useState(listing.images);
 	const [countdown, setCountdown] = useState(3); // set initial countdown to 3 seconds
@@ -88,7 +85,7 @@ const EditPropertyScreen = ({ pk, showModal, handleClose }) => {
 		}
 	}, [countdown, navigate]);
 	useEffect(() => {
-		console.log("Uploaded Images:", uploaded_images);
+		console.log("Uploaded Images:", listing);
 	}, [uploaded_images]);
 	const handleSubmit = (e) => {
 		e.preventDefault();
@@ -144,7 +141,7 @@ const EditPropertyScreen = ({ pk, showModal, handleClose }) => {
 				listing &&
 				listing.title &&
 				listing.main_photo &&
-				listing.address && (
+				listing.description && (
 					<Modal size="lg" show={showModal} onHide={handleClose} centered>
 						<Modal.Header closeButton>
 							<Modal.Title>Edit Property</Modal.Title>

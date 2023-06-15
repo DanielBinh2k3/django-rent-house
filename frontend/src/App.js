@@ -20,7 +20,9 @@ import AddPropertyScreen from "./components/realtor_page/AddPropertyScreen";
 import ListProperty from "./components/realtor_page/ListProperty";
 import FavoriteScreen from "./components/profile/FavoriteScreen";
 import SearchScreen from "./components/home/SearchScreen";
-import OrderCreateScreen from "./components/order/OrderCreateScreen";
+import OrderScreenNormal from "./components/order/OrderScreenNormal";
+import OrderScreenRealtor from "./components/order/OrderScreenRealtor";
+import Map from "./components/property/map";
 
 function App() {
 	return (
@@ -30,7 +32,9 @@ function App() {
 				<div id="google-signin-prompt" className="google-signin-prompt" />
 				<Routes>
 					<Route exact path="/" element={<Home />} />
-					<Route exact path="/order" element={<OrderCreateScreen />} />
+					<Route exact path="/map" element={<Map />} />
+					<Route exact path="/order" element={<OrderScreenNormal />} />
+					<Route exact path="/manage/orders" element={<OrderScreenRealtor />} />
 					<Route exact path="/search" element={<SearchScreen />} />
 					<Route exact path="/about" element={<About />} />
 					<Route exact path="/services" element={<Services />} />
