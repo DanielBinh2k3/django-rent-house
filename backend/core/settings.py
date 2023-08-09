@@ -156,7 +156,15 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': "rest_framework.pagination.PageNumberPagination",
-    'PAGE_SIZE': 12
+    'PAGE_SIZE': 12,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '2/day',
+    #     'user': '1000/day'
+    # }
 }
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -179,7 +187,6 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
-
 }
 
 # Default primary key field type

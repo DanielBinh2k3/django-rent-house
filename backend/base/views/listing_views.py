@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions, parsers, serializers
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.shortcuts import get_object_or_404
+from rest_framework.throttling import UserRateThrottle
 from base.models import Listing, Order
 from base.serializers.listing_serializers import PropertySerializer, OrderSerializer
 from drf_yasg.utils import swagger_auto_schema
@@ -120,7 +120,7 @@ class ManageListingView(SearchListingView):
         operation_description="Get all listings associated with a realtor",
         responses={200: PropertySerializer(many=True)}
     )
-    @transaction.atomic
+    #
     def get(self, request, pk=None):
         try:
             # with transaction.atomic():
@@ -143,7 +143,7 @@ class ManageListingView(SearchListingView):
         operation_description="Create a new property listing",
         request_body=PropertySerializer,
     )
-    @transaction.atomic
+    #
     def post(self, request):
         serializer = self.serializer_class(context={'request': request}, data=request.data)
         try:
@@ -174,7 +174,7 @@ class ManageListingView(SearchListingView):
             500: "Internal Server Error",
         },
     )
-    @transaction.atomic
+    #
     def put(self, request, pk):
         try:
             with transaction.atomic():
@@ -214,7 +214,7 @@ class ManageListingView(SearchListingView):
             500: "Internal Server Error"
         }
     )
-    @transaction.atomic
+    #
     def delete(self, request, pk):
         try:
             with transaction.atomic():
@@ -250,7 +250,7 @@ class ListingDetailView(APIView):
             )
         ]
     )
-    # @transaction.atomic
+
     def get(self, request):
         try:
             # with transaction.atomic():
@@ -375,7 +375,7 @@ class OrderListingNormalView(APIView):
             404: "Order not found.",
         },
     )
-    # @transaction.atomic
+
     def put(self, request, pk):
         try:
             with transaction.atomic():
@@ -400,7 +400,8 @@ class OrderListingNormalView(APIView):
             404: "Order not found.",
         },
     )
-    # @transaction.atomic
+    
+
     def delete(self, request, pk):
         try:
             with transaction.atomic():
@@ -425,7 +426,7 @@ class OrderListingRealtorView(OrderListingNormalView):
             401: "Authentication credentials were not provided.",
         },
     )
-    # @transaction.atomic
+
     def get(self, request):
         try:
             # with transaction.atomic():
@@ -453,7 +454,7 @@ class OrderListingRealtorView(OrderListingNormalView):
             404: "Order not found.",
         },
     )
-    @transaction.atomic
+    #
     def put(self, request, pk):
         try:
             with transaction.atomic():
@@ -481,7 +482,7 @@ class OrderListingRealtorView(OrderListingNormalView):
             404: "Order not found.",
         },
     )
-    @transaction.atomic
+    #
     def delete(self, request, pk):
         try:
             with transaction.atomic():

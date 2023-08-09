@@ -274,6 +274,12 @@ const OrderCreateScreen = ({
 														</a>
 													</strong>
 												</p>
+												<p>
+													Date:{" "}
+													<strong>
+														From {formData.dateIn} to {formData.dateOut}
+													</strong>
+												</p>
 											</ListGroup.Item>
 
 											<ListGroup.Item>
